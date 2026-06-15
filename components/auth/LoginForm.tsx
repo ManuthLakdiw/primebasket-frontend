@@ -2,17 +2,18 @@
 
 import { motion } from "motion/react";
 import Link from 'next/link';
-import {FormEvent} from 'react';
 import {formAnimationVariant} from "@/util/animations";
 import {LoginFormValues, loginSchema} from "@/util/validations";
 import {useRouter} from "next/navigation";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
-import {loginUserAction, resendOtpAction} from "@/actions/auth";
+import {loginUserAction} from "@/actions/auth";
 import {processOtpResend} from "@/util/authHelpers";
+import {useAuthStore} from "@/store/authStore";
 
 export default function LoginForm() {
+    const loadUser = useAuthStore((state) => state.loadUser);
 
     const router = useRouter();
 
@@ -28,7 +29,8 @@ export default function LoginForm() {
 
         if (response.success) {
             toast.success("Welcome back!", { id: loadingToast, duration: 2000 });
-            router.push('/');
+            await loadUser();
+            router.replace('/');
         } else {
             if (response.error?.toLowerCase().includes("locked")) {
                 toast((t) => (
