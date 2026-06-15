@@ -158,3 +158,30 @@ export async function googleLoginAction(idToken: string) {
         return { success: false, error: "Something went wrong during Google Login" };
     }
 }
+
+
+export async function facebookLoginAction(fbAccessToken: string) {
+    try {
+        const response = await fetchApi('/auth/facebook', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accessToken: fbAccessToken }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+            const { accessToken, refreshToken } = result.data;
+            const cookieStore = await cookies();
+            const isProduction = process.env.NODE_ENV === 'production';
+
+            cookieStore.set('accessToken', accessToken, { httpOnly: true, secure: isProduction, sameSite: 'lax', path: '/', maxAge: 60 * 15 });
+            cookieStore.set('refreshToken', refreshToken, { httpOnly: true, secure: isProduction, sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 7 });
+
+            return { success: true };
+        }
+        return { success: false, error: result.message || "Facebook Login failed" };
+    } catch (error) {
+        return { success: false, error: "Something went wrong during Facebook Login" };
+    }
+}
