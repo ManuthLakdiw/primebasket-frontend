@@ -116,3 +116,45 @@ export async function loginUserAction(data: { email: string; password: string })
         }
     }
 }
+
+
+export async function googleLoginAction(idToken: string) {
+    try {
+        const response = await fetchApi('/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken }),
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data) {
+            const { accessToken, refreshToken } = result.data;
+            const cookieStore = await cookies();
+            const isProduction = process.env.NODE_ENV === 'production';
+
+            cookieStore.set('accessToken', accessToken, {
+                httpOnly: true,
+                secure: isProduction,
+                sameSite: 'lax',
+                path: '/',
+                maxAge: 60 * 15 // 15 mins
+            });
+
+            cookieStore.set('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: isProduction,
+                sameSite: 'lax',
+                path: '/',
+                maxAge: 60 * 60 * 24 * 7 // 7 days
+            });
+
+            return { success: true };
+        }
+
+        return { success: false, error: result.message || "Google Login failed" };
+
+    } catch (error) {
+        return { success: false, error: "Something went wrong during Google Login" };
+    }
+}
