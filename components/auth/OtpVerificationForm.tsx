@@ -13,56 +13,54 @@ import { resendOtpAction, verifyOtpAction } from "@/actions/auth";
 export default function OtpVerificationForm() {
     const router = useRouter();
     const [otp, setOtp] = useState<string[]>(Array(4).fill(''));
-    const [expiryTime, setExpiryTime] = useState<number | null>(() => {
-        if (typeof window !== 'undefined') {
-            const savedExpiry = sessionStorage.getItem('otpExpiry');
-            return savedExpiry ? parseInt(savedExpiry) : null;
-        }
-        return null;
-    });
-    const [timeLeft, setTimeLeft] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const savedExpiry = sessionStorage.getItem('otpExpiry');
-            if (savedExpiry) {
-                const remaining = Math.max(0, parseInt(savedExpiry) - Date.now());
-                return Math.floor(remaining / 1000);
-            }
-        }
-        return 0;
-    });
+
+    const [expiryTime, setExpiryTime] = useState<number | null>(null);
+    const [timeLeft, setTimeLeft] = useState(0);
+    const [isLoadingData, setIsLoadingData] = useState(true);
+
     const inputRefs = useRef<(HTMLInputElement | null)[]>(Array(4).fill(null));
 
     const { handleSubmit, setValue, formState: { isSubmitting, errors } } = useForm<VerifyOtpValues>({
         resolver: zodResolver(verifyOtpSchema),
         defaultValues: {
-            email: typeof window !== 'undefined' ? sessionStorage.getItem('verifyEmail') || '' : '',
+            email: '',
             otp: ''
         }
     });
 
     useEffect(() => {
+        const savedEmail = sessionStorage.getItem('verifyEmail');
+        if (savedEmail) setValue('email', savedEmail);
+
         const savedExpiry = sessionStorage.getItem('otpExpiry');
         if (savedExpiry) {
             const expiry = parseInt(savedExpiry);
-            if (expiry > Date.now()) setExpiryTime(expiry);
+            if (expiry > Date.now()) {
+                setExpiryTime(expiry);
+                setTimeLeft(Math.floor((expiry - Date.now()) / 1000));
+            } else {
+                sessionStorage.removeItem('otpExpiry');
+            }
         }
-    }, []);
+        setIsLoadingData(false);
+    }, [setValue]);
 
     useEffect(() => {
-        if (!expiryTime) {
-            setTimeLeft(0);
-            return;
-        }
+        if (!expiryTime) return;
 
-        const interval = setInterval(() => {
+        const calculateTime = () => {
             const remaining = Math.max(0, expiryTime - Date.now());
             setTimeLeft(Math.floor(remaining / 1000));
+
             if (remaining <= 0) {
-                clearInterval(interval);
-                setTimeLeft(0);
+                clearInterval(intervalId);
             }
-        }, 1000);
-        return () => clearInterval(interval);
+        };
+
+        calculateTime();
+
+        const intervalId = setInterval(calculateTime, 1000);
+        return () => clearInterval(intervalId);
     }, [expiryTime]);
 
     const formattedTime = `${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}`;
@@ -70,12 +68,10 @@ export default function OtpVerificationForm() {
     const handleChange = (index: number, value: string) => {
         if (value.length > 1) return;
         if (isNaN(Number(value)) && value !== '') return;
-
         const newOtp = [...otp];
         newOtp[index] = value;
         setOtp(newOtp);
         setValue("otp", newOtp.join(''), { shouldValidate: true });
-
         if (value !== '' && index < 3) inputRefs.current[index + 1]?.focus();
     };
 
@@ -87,7 +83,7 @@ export default function OtpVerificationForm() {
 
     const handlePaste = (e: React.ClipboardEvent) => {
         e.preventDefault();
-        const pasted = e.clipboardData.getData('text').slice(0, 4); // 5 වෙනුවට 4
+        const pasted = e.clipboardData.getData('text').slice(0, 4);
         if (/^\d+$/.test(pasted)) {
             const digits = pasted.split('');
             setOtp(digits);
@@ -112,15 +108,15 @@ export default function OtpVerificationForm() {
 
     const onSubmit = async (data: VerifyOtpValues) => {
         const loading = toast.loading("Verifying...");
+
         const res = await verifyOtpAction(data);
-        toast.dismiss(loading);
 
         if (res.success) {
-            toast.success("Verified!");
+            toast.success("Verified! Redirecting...", { id: loading , duration: 2500 });
             sessionStorage.removeItem('otpExpiry');
             router.push('/login');
         } else {
-            toast.error(res.message, { id: 'otp-error' });
+            toast.error(res.message || "Verification failed. Please try again.", { id: loading });
         }
     };
 
@@ -154,15 +150,19 @@ export default function OtpVerificationForm() {
 
                 {errors.otp && <p className="text-sm text-red-500 text-center">{errors.otp.message}</p>}
 
-                <div className="flex justify-center items-center gap-2">
-                    {timeLeft > 0 ? (
-                        <span className="text-sm text-gray-500" suppressHydrationWarning={true}>
-                            Resend code in <span className="text-orange-500 font-semibold">{formattedTime}</span>
-                        </span>
+                <div className="flex justify-center items-center gap-2 h-8">
+                    {isLoadingData ? (
+                        <span className="text-sm text-gray-400">Loading...</span>
                     ) : (
-                        <button type="button" onClick={handleResend} className="text-sm font-medium text-orange-500 underline">
-                            Resend OTP
-                        </button>
+                        timeLeft > 0 ? (
+                            <span className="text-sm text-gray-500" suppressHydrationWarning>
+                                 Resend code in <span className="text-orange-500 font-semibold">{formattedTime}</span>
+                            </span>
+                        ) : (
+                            <button type="button" onClick={handleResend} className="text-sm font-medium text-orange-500 underline">
+                                Resend OTP
+                            </button>
+                        )
                     )}
                 </div>
 

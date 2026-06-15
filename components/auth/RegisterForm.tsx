@@ -8,7 +8,7 @@ import {RegisterFormValues, registerSchema} from "@/util/validations";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
-import {registerUserAction} from "@/actions/auth";
+import {registerUserAction, resendOtpAction} from "@/actions/auth";
 
 
 export default function RegisterForm() {
@@ -29,7 +29,54 @@ export default function RegisterForm() {
             toast.success("Verification code sent to " + data.email, { id: loadingToast });
             router.replace('/verify-otp');
         } else {
-            toast.error(response.error, { id: loadingToast });
+            if (response.error?.includes("not verified")) {
+                toast((t) => (
+                    <div className="flex flex-col gap-3">
+                        <p className="text-sm text-gray-700 font-medium">
+                            {response.error}
+                        </p>
+                        <div className="flex gap-2 mt-1">
+                            <button
+                                onClick={async () => {
+                                    toast.loading("Sending new code...", { id: t.id });
+
+                                    const resendRes = await resendOtpAction({ email: data.email });
+
+                                    if (resendRes.success) {
+                                        sessionStorage.setItem('verifyEmail', data.email);
+
+                                        const seconds = resendRes.data?.cooldownSeconds || 120;
+                                        const newExpiry = Date.now() + (seconds * 1000);
+                                        sessionStorage.setItem('otpExpiry', newExpiry.toString());
+
+                                        toast.success("Verification code sent to " + data.email, { id: t.id });
+
+                                        router.replace('/verify-otp');
+                                    } else {
+                                        toast.error(resendRes.error || "Failed to send OTP", { id: t.id });
+                                    }
+                                }}
+                                className="bg-orange-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-orange-600 transition"
+                            >
+                                Verify Now
+                            </button>
+                            <button
+                                onClick={() => toast.dismiss(t.id)}
+                                className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-gray-300 transition"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                ), {
+                    id: loadingToast,
+                    duration: 8000,
+                    icon: '⚠️'
+                });
+
+            } else {
+                toast.error(response.error, { id: loadingToast });
+            }
         }
     };
 
