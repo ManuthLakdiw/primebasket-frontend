@@ -16,7 +16,6 @@ export async function createCategoryAction(data: { name: string; description?: s
             return { success: false, error: result.message || "Failed to create" };
         }
 
-        revalidateTag('categories-list', {});
         return { success: true, data: result.data };
     } catch (error) {
         return { success: false, error: "Network error" };
@@ -37,7 +36,6 @@ export async function updateCategoryAction(id: number, data: { name: string; des
             return { success: false, error: result.message || "Failed to update" };
         }
 
-        revalidateTag('categories-list', {});
         return { success: true, data: result.data };
     } catch (error) {
         return { success: false, error: "Network error" };
@@ -56,7 +54,6 @@ export async function deleteCategoryAction(id: number) {
             return { success: false, error: result.message || "Failed to delete" };
         }
 
-        revalidateTag('categories-list', {});
         return { success: true, data: result.data };
     } catch (error) {
         return { success: false, error: "Network error" };
@@ -67,8 +64,6 @@ export async function getAllCategoriesAction(page: number, size: number) {
     try {
         const response = await fetchApi(`/categories?page=${page}&size=${size}`, {
             method: 'GET',
-            cache: 'force-cache',
-            next: { tags: ['categories-list'] }
         });
 
         const result = await response.json();

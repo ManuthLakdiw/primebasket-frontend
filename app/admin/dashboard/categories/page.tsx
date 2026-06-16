@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import {
     PlusIcon,
     PencilIcon,
@@ -12,10 +12,10 @@ import Pagination from '@/components/ui/Pagination';
 import {
     createCategoryAction,
     deleteCategoryAction,
-    getAllCategoriesAction, updateCategoryAction,
+    getAllCategoriesAction,
+    updateCategoryAction,
 } from "@/actions/category";
-import ConfirmationModal from "@/components/ui/ConfirmationModal";
-
+import { showConfirmToast } from "@/components/ui/confirmToast";
 
 type Category = {
     id: number;
@@ -31,8 +31,6 @@ export default function CategoriesPage() {
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
-
 
     const loadData = useCallback(async () => {
         setLoading(true);
@@ -45,7 +43,6 @@ export default function CategoriesPage() {
         }
         setLoading(false);
     }, [currentPage]);
-
 
     useEffect(() => {
         loadData();
@@ -61,28 +58,27 @@ export default function CategoriesPage() {
         setModalOpen(true);
     }, []);
 
-    const handleDeleteClick = useCallback((id: number) => {
-        console.log("1. Trash Icon එක එබුවා! ID එක:", id); // මේක Console එකේ පේනවද බලන්න
-        setCategoryToDelete(id);
-    }, []);
-
-    const executeDelete = useCallback(async () => {
-        console.log("2. Modal එකේ Delete බොත්තම එබුවා! මකන්න හදන ID එක:", categoryToDelete);
-        if (categoryToDelete === null) return;
-
+    const executeDelete = useCallback(async (id: number) => {
         const loadingToast = toast.loading('Deleting category...');
-        const response = await deleteCategoryAction(categoryToDelete);
+
+        const response = await deleteCategoryAction(id);
 
         if (response.success) {
             toast.success('Category deleted', { id: loadingToast });
             loadData();
         } else {
-            toast.error(response.error || 'Failed to delete', { id: loadingToast });
+            toast.error(response.error || 'Failed to delete', { id: loadingToast, duration: 500 });
         }
+    }, [loadData]);
 
-        setCategoryToDelete(null);
-    }, [categoryToDelete, loadData]);
-
+    const handleDelete = useCallback((id: number) => {
+        console.log("Deleting category with ID:", id);
+        showConfirmToast({
+            title: "Delete Category",
+            message: "Do you really want to delete this category? This cannot be undone.",
+            onConfirm: () => executeDelete(id),
+        });
+    }, [executeDelete]);
 
     const handleSave = useCallback(async (data: { name: string; description?: string }) => {
         const response = editingCategory
@@ -148,7 +144,7 @@ export default function CategoriesPage() {
                                         <PencilIcon className="h-5 w-5" />
                                     </button>
                                     <button
-                                        onClick={() => handleDeleteClick(cat.id)}
+                                        onClick={() => handleDelete(cat.id)}
                                         className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-md hover:bg-red-50"
                                         title="Delete"
                                     >
@@ -172,16 +168,6 @@ export default function CategoriesPage() {
                 onClose={() => setModalOpen(false)}
                 onSave={handleSave}
                 initialData={editingCategory ? { name: editingCategory.name, description: editingCategory.description } : { name: '', description: '' }}
-            />
-
-            <ConfirmationModal
-                isOpen={categoryToDelete !== null}
-                title="Delete Category"
-                message="Are you sure you want to delete this category? This action cannot be undone."
-                confirmLabel="Delete"
-                onConfirm={executeDelete}
-                onCancel={() => setCategoryToDelete(null)}
-                variant="danger"
             />
         </div>
     );

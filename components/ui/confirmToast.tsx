@@ -15,6 +15,9 @@ export const showConfirmToast = ({
                                      cancelText = "Cancel",
                                      onConfirm
                                  }: ConfirmOptions) => {
+
+    toast.dismiss('confirm-toast');
+
     toast((t) => (
         <div className="flex flex-col gap-3">
             <div>
@@ -40,6 +43,7 @@ export const showConfirmToast = ({
             </div>
         </div>
     ), {
+        id: 'confirm-toast',
         duration: Infinity,
         position: 'top-center',
     });
