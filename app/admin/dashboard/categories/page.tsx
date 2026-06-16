@@ -8,13 +8,13 @@ import {
     TrashIcon,
 } from '@heroicons/react/24/outline';
 import CategoryModal from '@/components/admin/CategoryModal';
-import Pagination from '@/components/admin/Pagination';
+import Pagination from '@/components/ui/Pagination';
 import {
     createCategoryAction,
     deleteCategoryAction,
     getAllCategoriesAction, updateCategoryAction,
 } from "@/actions/category";
-import {showConfirmToast} from "@/components/ui/confirmToast";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
 
 
 type Category = {
@@ -31,6 +31,8 @@ export default function CategoriesPage() {
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
+
 
     const loadData = useCallback(async () => {
         setLoading(true);
@@ -59,11 +61,17 @@ export default function CategoriesPage() {
         setModalOpen(true);
     }, []);
 
-    const executeDelete = useCallback(async (id: number) => {
-        // Delete වෙන්න පටන් ගත්තම අලුත් Loading Toast එකක් පෙන්නනවා
-        const loadingToast = toast.loading('Deleting category...');
+    const handleDeleteClick = useCallback((id: number) => {
+        console.log("1. Trash Icon එක එබුවා! ID එක:", id); // මේක Console එකේ පේනවද බලන්න
+        setCategoryToDelete(id);
+    }, []);
 
-        const response = await deleteCategoryAction(id);
+    const executeDelete = useCallback(async () => {
+        console.log("2. Modal එකේ Delete බොත්තම එබුවා! මකන්න හදන ID එක:", categoryToDelete);
+        if (categoryToDelete === null) return;
+
+        const loadingToast = toast.loading('Deleting category...');
+        const response = await deleteCategoryAction(categoryToDelete);
 
         if (response.success) {
             toast.success('Category deleted', { id: loadingToast });
@@ -71,15 +79,11 @@ export default function CategoriesPage() {
         } else {
             toast.error(response.error || 'Failed to delete', { id: loadingToast });
         }
-    }, [loadData]);
 
-    const handleDelete = useCallback((id: number) => {
-        showConfirmToast({
-            title: "Delete Category",
-            message: "Do you really want to delete this category? This cannot be undone.",
-            onConfirm: () => executeDelete(id),
-        });
-    }, [executeDelete]);
+        setCategoryToDelete(null);
+    }, [categoryToDelete, loadData]);
+
+
     const handleSave = useCallback(async (data: { name: string; description?: string }) => {
         const response = editingCategory
             ? await updateCategoryAction(editingCategory.id, data)
@@ -144,7 +148,7 @@ export default function CategoriesPage() {
                                         <PencilIcon className="h-5 w-5" />
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(cat.id)}
+                                        onClick={() => handleDeleteClick(cat.id)}
                                         className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-md hover:bg-red-50"
                                         title="Delete"
                                     >
@@ -168,6 +172,16 @@ export default function CategoriesPage() {
                 onClose={() => setModalOpen(false)}
                 onSave={handleSave}
                 initialData={editingCategory ? { name: editingCategory.name, description: editingCategory.description } : { name: '', description: '' }}
+            />
+
+            <ConfirmationModal
+                isOpen={categoryToDelete !== null}
+                title="Delete Category"
+                message="Are you sure you want to delete this category? This action cannot be undone."
+                confirmLabel="Delete"
+                onConfirm={executeDelete}
+                onCancel={() => setCategoryToDelete(null)}
+                variant="danger"
             />
         </div>
     );
