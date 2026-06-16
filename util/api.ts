@@ -4,7 +4,10 @@ import { cookies } from 'next/headers';
 
 const BASE_URL = process.env.API_BASE_URL;
 
-export async function fetchApi(endpoint: string, options: RequestInit = {}) {
+export async function fetchApi(
+    endpoint: string,
+    options: RequestInit & { next?: { tags?: string[]; revalidate?: number | false } } = {}
+) {
     const url = `${BASE_URL}${endpoint}`;
     console.log("FETCHING URL TO BACKEND:", url);
 

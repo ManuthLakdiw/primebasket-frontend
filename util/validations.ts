@@ -49,15 +49,10 @@ export const registerSchema = z.object({
         path: ["confirmPassword"]
     });
 
-export type RegisterFormValues = z.infer<typeof registerSchema>;
-
-
 export const verifyOtpSchema = z.object({
     email: z.string().email("Invalid email address"),
     otp: z.string().length(4, "OTP must be exactly 4 digits."),
 });
-
-export type VerifyOtpValues = z.infer<typeof verifyOtpSchema>;
 
 
 export const loginSchema = z.object({
@@ -65,6 +60,22 @@ export const loginSchema = z.object({
     password: z.string().min(1, "Password is required"),
 });
 
+export const categorySchema = z.object({
+    name: z.string()
+        .min(2, "Category name must be at least 2 characters")
+        .max(50, "Name is too long"),
+    description: z.string().optional().or(z.literal('')),
+});
+
+
+
+
+
+
+export type RegisterFormValues = z.infer<typeof registerSchema>;
+export type VerifyOtpValues = z.infer<typeof verifyOtpSchema>;
 export type LoginFormValues = z.infer<typeof loginSchema>;
+export type CategoryFormValues = z.infer<typeof categorySchema>;
+
 
 
