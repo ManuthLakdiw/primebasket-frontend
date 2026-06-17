@@ -9,7 +9,6 @@ export async function fetchApi(
     options: RequestInit & { next?: { tags?: string[]; revalidate?: number | false } } = {}
 ) {
     const url = `${BASE_URL}${endpoint}`;
-    console.log("FETCHING URL TO BACKEND:", url);
 
     const cookieStore = await cookies();
 
@@ -30,10 +29,13 @@ export async function fetchApi(
         ...(options.headers as Record<string, string>),
     };
 
+    console.log("FETCHING URL TO BACKEND:", url);
+
     let response = await fetch(url, {
         ...options,
         headers: finalHeaders,
     });
+
 
     if (response.status === 401) {
         console.log("Access Token Expired. Attempting to refresh...");
