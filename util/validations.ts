@@ -68,14 +68,65 @@ export const categorySchema = z.object({
 });
 
 
+export const productSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    sku: z.string().min(1, "SKU is required"),
+    description: z.string().min(10, "Description is required"),
 
+    price: z.coerce.number({ message: "Price must be a number" }).min(0, "Price cannot be negative"),
 
+    salePrice: z.union([z.coerce.number().min(0, "Sale price cannot be negative"), z.literal('')]).optional(),
 
+    saleStartDate: z.string().optional().or(z.literal('')),
+    saleEndDate: z.string().optional().or(z.literal('')),
+
+    stockQuantity: z.coerce.number({ message: "Stock must be a number" }).min(0, "Stock cannot be negative"),
+    categoryId: z.string().min(1, "Category is required"),
+
+    images: z.array(z.string())
+        .max(5, "You can only upload up to 5 images")
+        .min(1, "At least one image is required"),
+
+    isFeatured: z.boolean(),
+    isActive: z.boolean(),
+
+    attributes: z.array(z.object({
+        key: z.string().min(1, "Key is required"),
+        value: z.string().min(1, "Value is required")
+    })).min(1, "At least one attribute is required")
+
+}).superRefine((data, ctx) => {
+    // Sale Price Validation
+    if (data.salePrice !== '' && data.salePrice !== undefined) {
+        if (Number(data.salePrice) >= Number(data.price)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Sale price must be less than regular price",
+                path: ["salePrice"]
+            });
+        }
+    }
+
+    if (data.saleStartDate && data.saleEndDate) {
+        const start = new Date(data.saleStartDate);
+        const end = new Date(data.saleEndDate);
+
+        if (start >= end) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "End date must be after start date",
+                path: ["saleEndDate"]
+            });
+        }
+    }
+});
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type VerifyOtpValues = z.infer<typeof verifyOtpSchema>;
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type CategoryFormValues = z.infer<typeof categorySchema>;
+export type ProductFormValues = z.infer<typeof productSchema>;
+
 
 
 
