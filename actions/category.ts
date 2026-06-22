@@ -88,9 +88,7 @@ export async function getCategoriesForDropdownAction() {
     try {
         const response = await fetchApi('/categories/dropdown', {
             method: 'GET',
-            cache: 'force-cache',
-            next: { tags: ['categories-list'] }
-
+            cache: 'no-store',
         });
 
         const result = await response.json();

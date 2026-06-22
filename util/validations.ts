@@ -121,11 +121,57 @@ export const productSchema = z.object({
     }
 });
 
+export const personalInfoSchema = z.object({
+    firstName: z.string()
+        .min(2, "First name must be at least 2 characters.")
+        .regex(/^[a-zA-Z\s]+$/, "First name must contain only letters."),
+
+    lastName: z.string()
+        .min(2, "Last name must be at least 2 characters.")
+        .regex(/^[a-zA-Z\s]+$/, "Last name must contain only letters."),
+
+    telephone: z.string()
+        .regex(/^\+94\s?\d{2}\s?\d{3}\s?\d{4}$/, "Phone number must be in +94 format (e.g. +94 XX XXX XXXX)")
+});
+
+
+export const updatePasswordSchema = z.object({
+    currentPassword: z.string().min(1, "Current password is required."),
+
+    newPassword: z.string()
+        .min(6, "Password must be at least 6 characters long.")
+        .superRefine((val, ctx) => {
+            if (!/[A-Z]/.test(val)) {
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Must contain at least one uppercase letter." });
+            }
+            if (!/[a-z]/.test(val)) {
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Must contain at least one lowercase letter." });
+            }
+            if (!/[0-9]/.test(val)) {
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Must contain at least one number." });
+            }
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(val)) {
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Must contain at least one special character." });
+            }
+        }),
+
+    confirmNewPassword: z.string()
+})
+    .refine((data) => data.newPassword === data.confirmNewPassword, {
+        message: "New passwords do not match.",
+        path: ["confirmNewPassword"]
+    });
+
+
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type VerifyOtpValues = z.infer<typeof verifyOtpSchema>;
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type CategoryFormValues = z.infer<typeof categorySchema>;
 export type ProductFormValues = z.infer<typeof productSchema>;
+export type PersonalInfoValues = z.infer<typeof personalInfoSchema>;
+export type UpdatePasswordValues = z.infer<typeof updatePasswordSchema>;
+
+
 
 
 

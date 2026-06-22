@@ -7,6 +7,11 @@ export interface User {
     lastName: string;
     email: string;
     role: string;
+    addresses?: any[];
+    orders?: any[];
+    telephone?: string;
+    authProvider: string;
+    passkeys?: any[];
 }
 
 interface AuthState {
