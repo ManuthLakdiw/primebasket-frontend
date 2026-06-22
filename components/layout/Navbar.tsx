@@ -19,7 +19,7 @@ import {headerAnimationVariant} from "@/util/animations";
 import {useAuthStore} from "@/store/authStore";
 
 export default function Navbar() {
-    const { user, isLoading, logout } = useAuthStore();
+    const { user, isLoading, logout, loadUser } = useAuthStore();
     const pathname = usePathname();
     const router = useRouter();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -28,6 +28,11 @@ export default function Navbar() {
 
     const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
     const closeMobileMenu = () => setMobileMenuOpen(false);
+
+    useEffect(() => {
+        loadUser();
+    }, [pathname, loadUser]);
+
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {

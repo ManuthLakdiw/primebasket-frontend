@@ -67,7 +67,7 @@ export async function verifyPasskeyLoginAction(credential: any) {
         if (!response.ok) return { success: false, error: "Invalid Passkey" };
 
         const result = await response.json();
-        
+
         const { accessToken, refreshToken } = result.data;
         const cookieStore = await cookies();
         const isProduction = process.env.NODE_ENV === 'production';
@@ -91,6 +91,19 @@ export async function verifyPasskeyLoginAction(credential: any) {
 
         return { success: true, data: result };
     } catch (e) {
+        return { success: false, error: "Network error" };
+    }
+}
+
+export async function deletePasskeyAction(id: string) {
+    try {
+        const response = await fetchApi(`/users/passkeys/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) return { success: false, error: "Failed to delete passkey" };
+        return { success: true };
+    } catch (error) {
         return { success: false, error: "Network error" };
     }
 }
