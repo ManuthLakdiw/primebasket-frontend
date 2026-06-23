@@ -248,3 +248,55 @@ export async function getProductsByCategoryId(
     }
 }
 
+
+export async function getTopFeaturedProducts(limit: number = 4) {
+    try {
+        const response = await fetchApi(`/products/public/featured/preview?limit=${limit}`, {
+            method: 'GET',
+            cache: 'force-cache',
+            next: { tags: ['products-public-list'] }
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            return { success: false, error: result.message || "Failed to fetch featured products" };
+        }
+
+        return { success: true, data: result.data };
+    } catch (e) {
+        return { success: false, error: "Network error occurred" };
+    }
+}
+
+
+export async function getFeaturedProducts(
+    keyword: string = '',
+    page: number = 0,
+    size: number = 10
+) {
+    try {
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+        });
+
+        if (keyword.trim() !== '') {
+            queryParams.append('keyword', keyword.trim());
+        }
+
+        const response = await fetchApi(`/products/public/featured?${queryParams.toString()}`, {
+            method: 'GET',
+            cache: 'force-cache',
+            next: { tags: ['products-public-list'] }
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            return { success: false, error: result.message || "Failed to fetch featured products" };
+        }
+
+        return { success: true, data: result.data };
+    } catch (e) {
+        return { success: false, error: "Network error occurred" };
+    }
+}
