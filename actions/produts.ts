@@ -2,7 +2,7 @@
 
 import {ProductFormValues} from "@/util/validations";
 import {fetchApi} from "@/util/api";
-import {revalidatePath} from "next/cache";
+import {revalidatePath, revalidateTag} from "next/cache";
 
 export async function createProductAction(data: ProductFormValues) {
     try {
@@ -43,6 +43,10 @@ export async function createProductAction(data: ProductFormValues) {
         }
 
         revalidatePath('/admin/dashboard/products');
+
+
+        // @ts-ignore
+        revalidateTag('products-public-list');
 
         return { success: true, data: result.data || result };
 
@@ -91,6 +95,10 @@ export async function updateProductAction(id: number, data: ProductFormValues) {
         }
 
         revalidatePath('/admin/dashboard/products');
+
+
+        // @ts-ignore
+        revalidateTag('products-public-list');
 
         return { success: true, data: result.data || result };
 
@@ -153,6 +161,10 @@ export async function toggleProductActiveAction(id: number, newStatus: boolean) 
         }
 
         revalidatePath('/admin/dashboard/products');
+
+
+        // @ts-ignore
+        revalidateTag('products-public-list');
         return { success: true };
     } catch (error) {
         return { success: false, error: "Network error occurred" };
@@ -170,6 +182,10 @@ export async function toggleProductFeaturedAction(id: number, newStatus: boolean
         }
 
         revalidatePath('/admin/dashboard/products');
+
+
+        // @ts-ignore
+        revalidateTag('products-public-list');
         return { success: true };
     } catch (error) {
         return { success: false, error: "Network error occurred" };
@@ -189,8 +205,46 @@ export async function deleteProductAction(id: number) {
         }
 
         revalidatePath('/admin/dashboard/products');
+
+
+        // @ts-ignore
+        revalidateTag('products-public-list');
         return { success: true, data: result.data };
     } catch (error) {
         return { success: false, error: "Network error" };
     }
 }
+
+export async function getProductsByCategoryId(
+    categoryId: number,
+    keyword: string = '',
+    page: number = 0,
+    size: number = 10
+) {
+    try {
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+        });
+
+        if (keyword.trim() !== '') {
+            queryParams.append('keyword', keyword.trim());
+        }
+
+        const response = await fetchApi(`/products/public/category/${categoryId}?${queryParams.toString()}`, {
+            method: 'GET',
+            cache: 'force-cache',
+            next: { tags: ['products-public-list'] }
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            return { success: false, error: result.message || "Failed to fetch products" };
+        }
+
+        return { success: true, data: result.data };
+    } catch (e) {
+        return { success: false, error: "Network error occurred" };
+    }
+}
+

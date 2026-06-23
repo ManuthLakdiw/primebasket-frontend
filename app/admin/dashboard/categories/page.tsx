@@ -15,7 +15,7 @@ import {
     getAllCategoriesAction,
     updateCategoryAction,
 } from "@/actions/category";
-import { showConfirmToast } from "@/components/ui/confirmToast";
+import { showConfirmToast } from "@/components/ui/ConfirmToast";
 
 type Category = {
     id: number;
@@ -111,7 +111,7 @@ export default function CategoriesPage() {
             </div>
 
             {loading ? (
-                <p className="text-gray-500 text-center py-20">Loading categories...</p>
+                <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div></div>
             ) : categories.length === 0 ? (
                 <div className="text-center py-20">
                     <p className="text-gray-500">No categories found. Please add a new category.</p>

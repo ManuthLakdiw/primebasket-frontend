@@ -1,6 +1,7 @@
 'use server';
-import {fetchApi} from "@/util/api";
-import {revalidateTag} from "next/cache";
+
+import { fetchApi } from "@/util/api";
+import { revalidatePath } from "next/cache";
 
 export async function createCategoryAction(data: { name: string; description?: string }) {
     try {
@@ -16,7 +17,8 @@ export async function createCategoryAction(data: { name: string; description?: s
             return { success: false, error: result.message || "Failed to create" };
         }
 
-        revalidateTag('categories-list', 'max');
+        revalidatePath('/', 'layout');
+
         return { success: true, data: result.data };
     } catch (error) {
         return { success: false, error: "Network error" };
@@ -28,6 +30,7 @@ export async function updateCategoryAction(id: number, data: { name: string; des
     try {
         const response = await fetchApi(`/categories/${id}`, {
             method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
 
@@ -37,7 +40,8 @@ export async function updateCategoryAction(id: number, data: { name: string; des
             return { success: false, error: result.message || "Failed to update" };
         }
 
-        revalidateTag('categories-list', 'max');
+        revalidatePath('/', 'layout');
+
         return { success: true, data: result.data };
     } catch (error) {
         return { success: false, error: "Network error" };
@@ -56,7 +60,8 @@ export async function deleteCategoryAction(id: number) {
             return { success: false, error: result.message || "Failed to delete" };
         }
 
-        revalidateTag('categories-list', 'max');
+        revalidatePath('/', 'layout');
+
         return { success: true, data: result.data };
     } catch (error) {
         return { success: false, error: "Network error" };
@@ -68,7 +73,6 @@ export async function getAllCategoriesAction(page: number, size: number) {
         const response = await fetchApi(`/categories?page=${page}&size=${size}`, {
             method: 'GET',
             cache: 'force-cache',
-            next: { tags: ['categories-list'] }
         });
 
         const result = await response.json();
@@ -83,12 +87,11 @@ export async function getAllCategoriesAction(page: number, size: number) {
     }
 }
 
-
 export async function getCategoriesForDropdownAction() {
     try {
         const response = await fetchApi('/categories/dropdown', {
             method: 'GET',
-            cache: 'no-store',
+            cache: 'force-cache',
         });
 
         const result = await response.json();
@@ -99,6 +102,26 @@ export async function getCategoriesForDropdownAction() {
 
         return { success: true, data: result.data };
     } catch (error) {
+        return { success: false, error: "Network error occurred while fetching categories" };
+    }
+}
+
+export async function getAllPublicCategories() {
+    try {
+        const response = await fetchApi('/categories/public', {
+            method: 'GET',
+            cache: 'force-cache',
+        });
+
+        const json = await response.json();
+
+        if (!response.ok || !json.success) {
+            return { success: false, error: json.message || "Failed to fetch categories" };
+        }
+
+        return { success: true, data: json.data };
+
+    } catch (e) {
         return { success: false, error: "Network error occurred while fetching categories" };
     }
 }

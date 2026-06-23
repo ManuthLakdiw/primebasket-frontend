@@ -7,7 +7,7 @@ import {GoogleOAuthProvider} from "@react-oauth/google";
 export default function RootLayout({children,}: Readonly<{children: React.ReactNode}>) {
     return (
         <html lang="en" className="h-full antialiased">
-            <body className="h-full flex flex-col">
+            <body className="h-full">
             <AuthProvider>
                 <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID!}>
                     <Toaster
