@@ -1,6 +1,7 @@
 'use server';
 import { cookies } from 'next/headers';
 import {fetchApi} from "@/util/api";
+import {AddressFormValues} from "@/util/validations";
 
 export async function getMyDetailsAction() {
     try {
@@ -61,6 +62,65 @@ export async function updatePasswordAction(currentPassword: string, newPassword:
         }
     } catch (e) {
         return { success: false, error: "Network error" };
+    }
+}
+
+
+export async function addAddressAction(address: AddressFormValues) {
+    try {
+        const response = await fetchApi('/users/addresses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(address),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            return { success: true, message: result.data };
+        } else {
+            return { success: false, error: result.message || "Failed to add address" };
+        }
+    } catch (e) {
+        return { success: false, error: "Network error occurred" };
+    }
+}
+
+export async function updateAddressAction(address: AddressFormValues) {
+    try {
+        const response = await fetchApi('/users/addresses', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(address),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            return { success: true, message: result.data };
+        } else {
+            return { success: false, error: result.message || "Failed to update address" };
+        }
+    } catch (e) {
+        return { success: false, error: "Network error occurred" };
+    }
+}
+
+export async function deleteAddressAction(addressType: string) {
+    try {
+        const response = await fetchApi(`/users/addresses/${addressType}`, {
+            method: 'DELETE',
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            return { success: true, message: result.data };
+        } else {
+            return { success: false, error: result.message || "Failed to delete address" };
+        }
+    } catch (e) {
+        return { success: false, error: "Network error occurred" };
     }
 }
 

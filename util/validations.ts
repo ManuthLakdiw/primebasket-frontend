@@ -163,6 +163,16 @@ export const updatePasswordSchema = z.object({
     });
 
 
+const addressTypeEnum = z.enum(['HOME', 'OFFICE', 'OTHER']);
+
+export const addressSchema = z.object({
+    addressType: addressTypeEnum,
+    street: z.string().min(1, 'Street is required'),
+    city: z.string().min(1, 'City is required'),
+    district: z.string().min(1, 'District is required'),
+    postalCode: z.string().min(1, 'Postal code is required'),
+});
+
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type VerifyOtpValues = z.infer<typeof verifyOtpSchema>;
 export type LoginFormValues = z.infer<typeof loginSchema>;
@@ -170,6 +180,8 @@ export type CategoryFormValues = z.infer<typeof categorySchema>;
 export type ProductFormValues = z.infer<typeof productSchema>;
 export type PersonalInfoValues = z.infer<typeof personalInfoSchema>;
 export type UpdatePasswordValues = z.infer<typeof updatePasswordSchema>;
+export type AddressFormValues = z.infer<typeof addressSchema>;
+
 
 
 

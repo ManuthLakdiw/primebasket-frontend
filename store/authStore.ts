@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import {getMyDetailsAction, logoutAction} from "@/actions/user";
+import {Address} from "@/components/profile/AddressModal";
 
 export interface User {
     id: string;
@@ -7,7 +8,7 @@ export interface User {
     lastName: string;
     email: string;
     role: string;
-    addresses?: any[];
+    addresses?: Address[];
     orders?: any[];
     telephone?: string;
     authProvider: string;
