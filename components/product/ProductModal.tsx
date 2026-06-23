@@ -27,10 +27,24 @@ const ImageSlider = ({ images }: { images: string[] }) => {
     );
 };
 
-export default function ProductModal({ basicProduct, onClose }: { basicProduct: any, onClose: () => void }) {
+export default function ProductModal({
+                                         basicProduct,
+                                         sectionId = 'default',
+                                         onClose
+                                     }: {
+    basicProduct: any,
+    sectionId?: string,
+    onClose: () => void
+}) {
     const displayProduct = basicProduct;
     const outOfStock = displayProduct.stockQuantity <= 0;
     const isLowStock = displayProduct.stockStatus === "LOW_STOCK";
+
+    const cardLayoutId = `product-card-${sectionId}-${basicProduct.id}`;
+    const imageLayoutId = `product-image-${sectionId}-${basicProduct.id}`;
+    const titleLayoutId = `product-title-${sectionId}-${basicProduct.id}`;
+
+
 
     const handleAddToCart = () => {
         alert('Added to cart from modal!');
@@ -41,7 +55,7 @@ export default function ProductModal({ basicProduct, onClose }: { basicProduct: 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm cursor-pointer" />
 
             <motion.div
-                layoutId={`product-card-${basicProduct.id}`}
+                layoutId={cardLayoutId}
                 className="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden z-10 max-h-[90vh] flex flex-col"
             >
                 <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors z-20">
@@ -51,7 +65,7 @@ export default function ProductModal({ basicProduct, onClose }: { basicProduct: 
                 <div className="overflow-y-auto p-6 sm:p-8 custom-scrollbar">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
 
-                        <motion.div layoutId={`product-image-${basicProduct.id}`} className="w-full">
+                        <motion.div layoutId={imageLayoutId} className="w-full">
                             <ImageSlider images={displayProduct.images} />
                         </motion.div>
 
@@ -70,7 +84,7 @@ export default function ProductModal({ basicProduct, onClose }: { basicProduct: 
                                     )}
                                 </div>
 
-                                <motion.h2 layoutId={`product-title-${basicProduct.id}`} className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                                <motion.h2 layoutId={titleLayoutId} className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                                     {displayProduct.name}
                                 </motion.h2>
                                 <p className="text-sm text-gray-500">SKU: {displayProduct.sku}</p>

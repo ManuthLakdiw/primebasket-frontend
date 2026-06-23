@@ -300,3 +300,54 @@ export async function getFeaturedProducts(
         return { success: false, error: "Network error occurred" };
     }
 }
+
+export async function getTopOnSaleProducts(limit: number = 4) {
+    try {
+        const response = await fetchApi(`/products/public/onsale/preview?limit=${limit}`, {
+            method: 'GET',
+            cache: 'force-cache',
+            next: { tags: ['products-public-list'] }
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            return { success: false, error: result.message || "Failed to fetch on-sale products" };
+        }
+
+        return { success: true, data: result.data };
+    } catch (e) {
+        return { success: false, error: "Network error occurred" };
+    }
+}
+
+export async function getOnSaleProducts(
+    keyword: string = '',
+    page: number = 0,
+    size: number = 10
+) {
+    try {
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString(),
+        });
+
+        if (keyword.trim() !== '') {
+            queryParams.append('keyword', keyword.trim());
+        }
+
+        const response = await fetchApi(`/products/public/onsale?${queryParams.toString()}`, {
+            method: 'GET',
+            cache: 'force-cache',
+            next: { tags: ['products-public-list'] }
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            return { success: false, error: result.message || "Failed to fetch on-sale products" };
+        }
+
+        return { success: true, data: result.data };
+    } catch (e) {
+        return { success: false, error: "Network error occurred" };
+    }
+}

@@ -5,10 +5,10 @@ import ProductCard from '@/components/product/ProductCard';
 import ProductModal from '@/components/product/ProductModal';
 import Pagination from '@/components/ui/Pagination';
 import { MagnifyingGlassIcon, InboxIcon } from '@heroicons/react/24/outline';
-import { getFeaturedProducts } from "@/actions/produts";
+import { getOnSaleProducts } from "@/actions/produts";
 import { AnimatePresence } from 'motion/react';
 
-export default function FeaturedPage() {
+export default function OnSalePage() {
     const [products, setProducts] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
@@ -23,7 +23,8 @@ export default function FeaturedPage() {
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true);
-            const prodResult = await getFeaturedProducts(searchQuery, currentPage - 1, pageSize);
+            // getOnSaleProducts function එක පාවිච්චි වෙනවා
+            const prodResult = await getOnSaleProducts(searchQuery, currentPage - 1, pageSize);
 
             if (prodResult.success && prodResult.data) {
                 setProducts(prodResult.data.content || []);
@@ -66,7 +67,7 @@ export default function FeaturedPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-left relative">
 
             <div className="mb-8 text-left">
-                <h1 className="text-3xl font-bold text-gray-900 capitalize tracking-tight">Featured Products</h1>
+                <h1 className="text-3xl font-bold text-gray-900 capitalize tracking-tight">On Sale Products</h1>
                 <p className="mt-2 text-sm font-medium text-orange-600 bg-orange-50 inline-block px-3 py-1 rounded-full">
                     {totalElements} items available
                 </p>
@@ -79,7 +80,7 @@ export default function FeaturedPage() {
                 </div>
                 <input
                     type="text"
-                    placeholder="Search in featured products..."
+                    placeholder="Search in on-sale products..."
                     value={searchQuery}
                     onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -99,17 +100,17 @@ export default function FeaturedPage() {
                 {products.length === 0 && !loading ? (
                     <div className="flex flex-col items-start justify-center py-12 px-6 bg-gray-50 rounded-2xl border border-gray-100 border-dashed text-left">
                         <InboxIcon className="w-12 h-12 text-gray-300 mb-3" />
-                        <h3 className="text-lg font-bold text-gray-700">No featured products found</h3>
+                        <h3 className="text-lg font-bold text-gray-700">No on-sale products found</h3>
                         <button onClick={() => { setSearchQuery(''); setCurrentPage(1); }} className="mt-4 text-orange-600 text-sm font-medium hover:underline">Clear search</button>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                         {formattedProducts.map((product) => (
                             <ProductCard
-                                sectionId="featured-page"
                                 onClick={(prod) => setSelectedProduct(prod)}
                                 key={product.id}
                                 product={product}
+                                sectionId="onsale-page"
                             />
                         ))}
                     </div>
@@ -130,8 +131,8 @@ export default function FeaturedPage() {
             <AnimatePresence>
                 {selectedProduct && (
                     <ProductModal
-                        sectionId="featured-page"
                         basicProduct={selectedProduct}
+                        sectionId="onsale-page"
                         onClose={() => setSelectedProduct(null)}
                     />
                 )}

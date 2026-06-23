@@ -21,10 +21,11 @@ type Product = {
 
 type Props = {
     product: Product;
-    onClick: (product: Product) => void;
+    onClick: (product: Product, sectionId: string) => void;
+    sectionId?: string;
 };
 
-export default function ProductCard({ product, onClick }: Props) {
+export default function ProductCard({ product, onClick, sectionId = 'default' }: Props) {
     const outOfStock = product.stockQuantity <= 0;
     const isLowStock = product.stockStatus === "LOW_STOCK";
 
@@ -33,16 +34,21 @@ export default function ProductCard({ product, onClick }: Props) {
         alert('Added to cart!');
     };
 
+    const cardLayoutId = `product-card-${sectionId}-${product.id}`;
+    const imageLayoutId = `product-image-${sectionId}-${product.id}`;
+    const titleLayoutId = `product-title-${sectionId}-${product.id}`;
+
+
     return (
         <motion.div
-            layoutId={`product-card-${product.id}`}
+            layoutId={cardLayoutId}
             whileHover={{ y: -5 }}
             className="h-full flex group cursor-pointer"
-            onClick={() => onClick(product)}
+            onClick={() => onClick(product, sectionId)}
         >
             <div className="flex flex-col w-full bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg hover:border-orange-100 transition-all duration-300">
 
-                <motion.div layoutId={`product-image-${product.id}`} className="aspect-square bg-gray-50 relative overflow-hidden">
+                <motion.div layoutId={imageLayoutId} className="aspect-square bg-gray-50 relative overflow-hidden">
                     <Image
                         src={product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.net/default.svg'}
                         alt={product.name}
@@ -74,8 +80,7 @@ export default function ProductCard({ product, onClick }: Props) {
                 </motion.div>
 
                 <div className="p-4 flex-grow flex flex-col bg-white">
-                    <motion.h3 layoutId={`product-title-${product.id}`} className="text-sm font-medium text-gray-800 line-clamp-2 leading-tight mb-3 group-hover:text-orange-600 transition-colors flex-grow">
-                        {product.name}
+                    <motion.h3 layoutId={titleLayoutId} className="text-sm font-medium text-gray-800 line-clamp-2 leading-tight mb-3 group-hover:text-orange-600 transition-colors flex-grow">                        {product.name}
                     </motion.h3>
 
                     <div className="flex items-center flex-wrap gap-2 mt-auto">
