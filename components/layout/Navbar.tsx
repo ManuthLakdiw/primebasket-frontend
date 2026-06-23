@@ -39,6 +39,16 @@ export default function Navbar() {
     const profileMenuRef = useRef<HTMLDivElement>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [catLoading, setCatLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            closeMobileMenu();
+        }
+    };
+
 
     useEffect(() => {
         loadUser();
@@ -103,16 +113,24 @@ export default function Navbar() {
                     </div>
 
                     <div className="hidden lg:flex flex-1 justify-center px-6">
-                        <div className="max-w-lg w-full relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                            </div>
+                        <form onSubmit={handleSearch} className="max-w-lg w-full relative">
+                            <button type="button" onClick={(e) => handleSearch(e)} className="absolute inset-y-0 left-0 pl-3 flex items-center focus:outline-none">
+                                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 hover:text-orange-500 transition-colors" />
+                            </button>
                             <input
                                 type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault();
+                                        handleSearch(e);
+                                    }
+                                }}
                                 placeholder="Search fresh vegetables, fruits…"
                                 className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
                             />
-                        </div>
+                        </form>
                     </div>
 
                     <div className="flex items-center space-x-5">
@@ -189,8 +207,24 @@ export default function Navbar() {
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="lg:hidden border-t border-gray-200 overflow-hidden bg-white">
                         <nav className="px-3 pt-3 pb-5 space-y-1 sm:px-4">
                             <div className="relative mb-4">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><MagnifyingGlassIcon className="h-5 w-5 text-gray-400" /></div>
-                                <input type="text" placeholder="Search products…" className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md bg-gray-50 focus:ring-orange-500 sm:text-sm" />
+                                <form onSubmit={handleSearch} className="max-w-lg w-full relative">
+                                    <button type="button" onClick={(e) => handleSearch(e)} className="absolute inset-y-0 left-0 pl-3 flex items-center focus:outline-none">
+                                        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 hover:text-orange-500 transition-colors" />
+                                    </button>
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                handleSearch(e);
+                                            }
+                                        }}
+                                        placeholder="Search fresh vegetables, fruits…"
+                                        className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                                    />
+                                </form>
                             </div>
 
                             {isLoading ? (
