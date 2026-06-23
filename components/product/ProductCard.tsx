@@ -2,6 +2,7 @@
 
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { motion } from "motion/react";
+import Image from "next/image";
 
 type Product = {
     id: string;
@@ -42,31 +43,27 @@ export default function ProductCard({ product, onClick }: Props) {
             <div className="flex flex-col w-full bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg hover:border-orange-100 transition-all duration-300">
 
                 <motion.div layoutId={`product-image-${product.id}`} className="aspect-square bg-gray-50 relative overflow-hidden">
-                    <img
-                        src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.svg'}
+                    <Image
+                        src={product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.net/default.svg'}
                         alt={product.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        fill
+                        unoptimized={true}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
 
                     <div className="absolute top-3 left-3 flex flex-col gap-2 z-10 items-start">
                         {product.isOnSale && (
-                            <span className="bg-red-500 text-white text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm flex items-center justify-center">
-                                Sale
-                            </span>
+                            <span className="bg-red-500 text-white text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">Sale</span>
                         )}
                         {product.isFeatured && (
-                            <span className="bg-yellow-400 text-black text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm flex items-center justify-center">
-                                Featured
-                            </span>
+                            <span className="bg-yellow-400 text-black text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">Featured</span>
                         )}
                         {isLowStock && !outOfStock && (
-                            <span className="bg-orange-500 text-white text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm flex items-center justify-center">
-                                Low Stock
-                            </span>
+                            <span className="bg-orange-500 text-white text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wider shadow-sm">Low Stock</span>
                         )}
                     </div>
 
-                    {/* Out of Stock Overlay */}
                     {outOfStock && (
                         <div className="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-[1px] z-20">
                             <span className="bg-gray-900 text-white text-xs px-4 py-1.5 rounded-full font-semibold shadow-md uppercase tracking-widest">
