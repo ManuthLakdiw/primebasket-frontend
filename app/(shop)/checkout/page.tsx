@@ -20,7 +20,6 @@ import {Address} from "@/components/profile/AddressModal";
 import {updateMyDetailsAction} from "@/actions/user";
 import {createOrderAction} from "@/actions/order";
 
-
 export default function CheckoutPage() {
     const router = useRouter();
     const { items, fetchCart, isLoading: isCartLoading } = useCartStore();
@@ -33,6 +32,8 @@ export default function CheckoutPage() {
     const { user, loadUser, isLoading: isAuthLoading } = useAuthStore();
     const [isSavingPhone, setIsSavingPhone] = useState(false);
     const [phoneError, setPhoneError] = useState('');
+
+    const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
     const shippingFee = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE || 400);
 
@@ -116,6 +117,8 @@ export default function CheckoutPage() {
             return;
         }
 
+        setIsPlacingOrder(true);
+
         const deliveryAddress = addresses[selectedAddressIndex];
 
         const payload = {
@@ -129,11 +132,14 @@ export default function CheckoutPage() {
                 toast.success('Order placed successfully!');
                 sessionStorage.removeItem('cart-selected-items');
                 router.replace(`/order-confirmation?orderNumber=${res.data}`);
+
             } else {
                 toast.error(res.error || 'Order failed');
+                setIsPlacingOrder(false);
             }
         } catch (error) {
             toast.error('Network error, please try again.');
+            setIsPlacingOrder(false);
         }
     };
 
@@ -163,7 +169,7 @@ export default function CheckoutPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-               <div className="lg:col-span-7 space-y-6">
+                <div className="lg:col-span-7 space-y-6">
 
                     <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
                         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-3">
@@ -180,14 +186,12 @@ export default function CheckoutPage() {
                                 </div>
                             </div>
 
-                            {/* Phone */}
                             <div className="flex items-start sm:items-center gap-3 sm:gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50/50">
                                 <PhoneIcon className="h-6 w-6 text-gray-400 mt-0.5 sm:mt-0 flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Mobile Number</p>
                                     {!user?.telephone || isEditingPhone ? (
                                         <div className="flex flex-col gap-2">
-                                            {/* 🌟 Mobile Responsive Flex Row */}
                                             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                                                 <input
                                                     type="tel"
@@ -343,10 +347,17 @@ export default function CheckoutPage() {
 
                         <button
                             onClick={handlePlaceOrder}
-                            disabled={addresses.length === 0 || !user?.telephone || isEditingPhone}
-                            className="w-full py-4 bg-orange-500 text-white text-lg font-bold rounded-xl hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
+                            disabled={addresses.length === 0 || !user?.telephone || isEditingPhone || isPlacingOrder}
+                            className="w-full py-4 bg-orange-500 text-white text-lg font-bold rounded-xl hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none flex justify-center items-center"
                         >
-                            Place Order
+                            {isPlacingOrder ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                                    Placing Order...
+                                </>
+                            ) : (
+                                'Place Order'
+                            )}
                         </button>
 
                         <p className="mt-4 text-xs text-gray-400 text-center flex items-center justify-center gap-1">
