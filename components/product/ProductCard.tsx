@@ -8,6 +8,7 @@ import {useRouter} from "next/navigation";
 import {CheckCircleIcon} from "@heroicons/react/24/solid";
 import {useAuthStore} from "@/store/authStore";
 import toast from "react-hot-toast";
+import {useState} from "react";
 
 type Product = {
     id: string;
@@ -36,6 +37,7 @@ export default function ProductCard({ product, onClick, sectionId = 'default' }:
     const { items, addToCart } = useCartStore();
     const { user } = useAuthStore();
     const router = useRouter();
+    const [isAdding, setIsAdding] = useState(false);
 
     const isInCart = items.some(item => item.productId === Number(product.id));
 
@@ -48,11 +50,19 @@ export default function ProductCard({ product, onClick, sectionId = 'default' }:
             return;
         }
 
-        const success = await addToCart(Number(product.id), 1);
-        if (success) {
-            toast.success("Added to cart!");
-        } else {
-            toast.error("Failed to add to cart");
+        setIsAdding(true);
+
+        try {
+            const success = await addToCart(Number(product.id), 1);
+            if (success) {
+                toast.success("Added to cart!");
+            } else {
+                toast.error("Failed to add to cart");
+            }
+        } catch (error) {
+            toast.error("An unexpected error occurred");
+        } finally {
+            setIsAdding(false);
         }
     };
 
@@ -154,7 +164,7 @@ export default function ProductCard({ product, onClick, sectionId = 'default' }:
                                 exit={{ y: 20, opacity: 0 }}
                                 transition={{ duration: 0.2 }}
                                 onClick={handleAddToCart}
-                                disabled={outOfStock}
+                                disabled={outOfStock || isAdding}
                                 className={`absolute inset-x-4 bottom-4 w-[calc(100%-2rem)] flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
                                     outOfStock
                                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
@@ -162,7 +172,7 @@ export default function ProductCard({ product, onClick, sectionId = 'default' }:
                                 }`}
                             >
                                 <ShoppingCartIcon className="h-4 w-4" />
-                                {outOfStock ? 'Unavailable' : 'Add to Cart'}
+                                {outOfStock ? 'Unavailable' : isAdding ? 'Adding...' : 'Add to Cart'}
                             </motion.button>
                         )}
                     </AnimatePresence>

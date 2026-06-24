@@ -19,6 +19,7 @@ import { useCartStore } from '@/store/cartStore';
 import {Address} from "@/components/profile/AddressModal";
 import {updateMyDetailsAction} from "@/actions/user";
 import {createOrderAction} from "@/actions/order";
+import {getPaymentDataAction} from "@/actions/payment";
 
 export default function CheckoutPage() {
     const router = useRouter();
@@ -127,21 +128,70 @@ export default function CheckoutPage() {
         };
 
         try {
-            const res = await createOrderAction(payload);
-            if (res.success) {
-                toast.success('Order placed successfully!');
-                sessionStorage.removeItem('cart-selected-items');
-                router.replace(`/order-confirmation?orderNumber=${res.data}`);
-
-            } else {
-                toast.error(res.error || 'Order failed');
+            const orderRes = await createOrderAction(payload);
+            if (!orderRes.success) {
+                toast.error(orderRes.error || 'Order failed');
                 setIsPlacingOrder(false);
+                return;
             }
+
+            const orderNumber = orderRes.data;
+            console.log("Order number:", orderNumber);
+
+            const paymentRes = await getPaymentDataAction(orderNumber);
+            console.log("Payment response:", paymentRes);
+
+            if (!paymentRes.success) {
+                toast.error("Failed to initialize payment gateway.");
+                setIsPlacingOrder(false);
+                return;
+            }
+            const paymentData = paymentRes.data;
+            router.replace('/cart');
+            submitPayHereForm(paymentData);
         } catch (error) {
             toast.error('Network error, please try again.');
             setIsPlacingOrder(false);
         }
     };
+
+    const submitPayHereForm = (data: any) => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = process.env.NEXT_PUBLIC_PAYHERE_URL as string;
+
+        const fields = {
+            merchant_id: data.merchantId,
+            return_url: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/order-confirmation?orderNumber=${data.orderId}`,
+            cancel_url: `${process.env.NEXT_PUBLIC_FRONTEND_URL}/checkout`,
+            notify_url: process.env.NEXT_PUBLIC_NOTIFY_URL,
+            items: 'PrimeBasket Order',
+            order_id: data.orderId,
+            amount: data.amount,
+            currency: data.currency,
+            hash: data.hash,
+            first_name: user?.firstName,
+            last_name: user?.lastName,
+            email: user?.email,
+            phone: user?.telephone,
+            address: addresses[selectedAddressIndex].street,
+            city: addresses[selectedAddressIndex].city,
+            country: 'Sri Lanka'
+        };
+
+        for (const key in fields) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = (fields as any)[key] || '';
+            form.appendChild(input);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    };
+
 
     if (isAuthLoading || isPageLoading || isCartLoading) {
         return (
