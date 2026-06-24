@@ -20,10 +20,8 @@ export default function CartPage() {
     const { user, isLoading: isAuthLoading } = useAuthStore();
     const router = useRouter();
     const [isPageLoading, setIsPageLoading] = useState(true);
-
+    const [selectedItems, setSelectedItems] = useState<number[]>([]);
     const shippingFee = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE || 400);
-
-    const finalTotal = totalPrice + shippingFee;
 
     useEffect(() => {
         if (!isAuthLoading) {
@@ -34,6 +32,47 @@ export default function CartPage() {
             }
         }
     }, [user, isAuthLoading, router, fetchCart]);
+
+    useEffect(() => {
+        if (items.length > 0 && selectedItems.length === 0) {
+            setSelectedItems(items.map(item => item.id));
+        } else if (items.length === 0) {
+            setSelectedItems([]);
+        }
+    }, [items.length]);
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            setSelectedItems(items.map(item => item.id));
+        } else {
+            setSelectedItems([]);
+        }
+    };
+
+    const handleSelectItem = (id: number) => {
+        if (selectedItems.includes(id)) {
+            setSelectedItems(selectedItems.filter(itemId => itemId !== id));
+        } else {
+            setSelectedItems([...selectedItems, id]);
+        }
+    };
+
+    const handleRemoveItem = async (id: number) => {
+        await removeFromCart(id);
+        setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+    };
+
+    const selectedSubtotal = items
+        .filter(item => selectedItems.includes(item.id))
+        .reduce((total, item) => total + item.subTotal, 0);
+
+    const selectedTotalItems = items
+        .filter(item => selectedItems.includes(item.id))
+        .reduce((count, item) => count + item.quantity, 0);
+
+    const isAllSelected = items.length > 0 && selectedItems.length === items.length;
+
+    const finalTotal = selectedItems.length > 0 ? selectedSubtotal + shippingFee : 0;
 
     if (isAuthLoading || isPageLoading) {
         return (
@@ -77,10 +116,21 @@ export default function CartPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-4">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
+                        <input
+                            type="checkbox"
+                            checked={isAllSelected}
+                            onChange={handleSelectAll}
+                            className="w-5 h-5 text-orange-500 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 cursor-pointer"
+                        />
+                        <span className="font-semibold text-gray-700">Select All Items</span>
+                    </div>
                     <AnimatePresence>
                         {items.map((item) => {
                             const { id, productName, images, unitPrice, quantity, subTotal, availableStock } = item;
                             const maxReached = quantity >= availableStock;
+
+                            const isSelected = selectedItems.includes(id);
 
                             return (
                                 <motion.div
@@ -89,8 +139,18 @@ export default function CartPage() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, x: -50, transition: { duration: 0.2 } }}
-                                    className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5 flex gap-4 items-start"
+                                    className={`bg-white rounded-2xl shadow-sm border p-4 sm:p-5 flex gap-4 items-center transition-colors ${
+                                        isSelected ? 'border-orange-200 bg-orange-50/30' : 'border-gray-100'
+                                    }`}
                                 >
+
+                                    <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => handleSelectItem(id)}
+                                        className="w-5 h-5 flex-shrink-0 text-orange-500 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 cursor-pointer"
+                                    />
+
                                     <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-gray-50 flex-shrink-0 overflow-hidden">
                                         {images && images.length > 0 ? (
                                             <Image
@@ -157,7 +217,7 @@ export default function CartPage() {
                                                     Rs. {subTotal.toFixed(2)}
                                                 </span>
                                                 <button
-                                                    onClick={() => removeFromCart(id)}
+                                                    onClick={() => handleRemoveItem(id)}
                                                     disabled={isLoading}
                                                     className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                                                     aria-label={`Remove ${productName}`}
@@ -173,19 +233,22 @@ export default function CartPage() {
                     </AnimatePresence>
                 </div>
 
+                {/* 🌟 මෙතැන් සිට වෙනස් කර ඇත (Order Summary) */}
                 <div className="lg:col-span-1">
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-28">
                         <h2 className="text-xl font-semibold text-gray-800 mb-6">Order Summary</h2>
 
                         <div className="space-y-4">
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-600">Subtotal ({totalItems} items)</span>
-                                <span className="font-medium text-gray-900">Rs. {totalPrice.toFixed(2)}</span>
+                                <span className="text-gray-600">Subtotal ({selectedTotalItems} items)</span>
+                                <span className="font-medium text-gray-900">Rs. {selectedSubtotal.toFixed(2)}</span>
                             </div>
 
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-600">Shipping (Island-wide)</span>
-                                <span className="font-medium text-gray-900">Rs. {shippingFee.toFixed(2)}</span>
+                                <span className="font-medium text-gray-900">
+                                    Rs. {selectedItems.length > 0 ? shippingFee.toFixed(2) : "0.00"}
+                                </span>
                             </div>
 
                             <div className="border-t border-gray-100 pt-4 flex justify-between items-end">
@@ -195,10 +258,10 @@ export default function CartPage() {
                         </div>
 
                         <button
-                            disabled={isLoading}
-                            className="mt-8 w-full py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                            disabled={isLoading || selectedItems.length === 0}
+                            className="mt-8 w-full py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Proceed to Checkout
+                            Proceed to Checkout {selectedItems.length > 0 ? `(${selectedItems.length})` : ''}
                             <ArrowRightIcon className="w-4 h-4" />
                         </button>
 
