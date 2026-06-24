@@ -21,6 +21,7 @@ export default function CartPage() {
     const router = useRouter();
     const [isPageLoading, setIsPageLoading] = useState(true);
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
+    const [isInitialized, setIsInitialized] = useState(false);
     const shippingFee = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE || 400);
 
     useEffect(() => {
@@ -258,6 +259,10 @@ export default function CartPage() {
                         </div>
 
                         <button
+                            onClick={() => {
+                                sessionStorage.setItem('cart-selected-items', JSON.stringify(selectedItems));
+                                router.push('/checkout');
+                            }}
                             disabled={isLoading || selectedItems.length === 0}
                             className="mt-8 w-full py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
