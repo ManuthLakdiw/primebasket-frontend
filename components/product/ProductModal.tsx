@@ -1,9 +1,14 @@
 'use client';
 
 import { useState } from "react";
-import { motion } from "motion/react";
+import {AnimatePresence, motion } from "motion/react";
 import { XMarkIcon, ShoppingCartIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import {useAuthStore} from "@/store/authStore";
+import {useCartStore} from "@/store/cartStore";
+import {useRouter} from "next/navigation";
+import toast from "react-hot-toast";
+import {CheckCircleIcon} from "@heroicons/react/24/solid";
 
 const ImageSlider = ({ images }: { images: string[] }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -39,15 +44,36 @@ export default function ProductModal({
     const displayProduct = basicProduct;
     const outOfStock = displayProduct.stockQuantity <= 0;
     const isLowStock = displayProduct.stockStatus === "LOW_STOCK";
+    const { user } = useAuthStore();
+    const { items, addToCart } = useCartStore();
+    const router = useRouter();
+
 
     const cardLayoutId = `product-card-${sectionId}-${basicProduct.id}`;
     const imageLayoutId = `product-image-${sectionId}-${basicProduct.id}`;
     const titleLayoutId = `product-title-${sectionId}-${basicProduct.id}`;
 
+    const isInCart = items.some(item => item.productId === Number(displayProduct.id));
 
 
-    const handleAddToCart = () => {
-        alert('Added to cart from modal!');
+    const handleAddToCart = async () => {
+        if (!user) {
+            toast.error("Please login to add items to cart");
+            setTimeout(() => router.push('/login'), 1000);
+            return;
+        }
+
+        const success = await addToCart(Number(displayProduct.id), 1);
+        if (success) {
+            toast.success("Added to cart!");
+        } else {
+            toast.error("Failed to add to cart");
+        }
+    };
+
+    const handleViewCart = () => {
+        onClose();
+        router.push('/cart');
     };
 
     return (
@@ -119,19 +145,41 @@ export default function ProductModal({
                                 </div>
                             )}
 
-                            <div className="mt-auto pt-4">
-                                <button
-                                    onClick={handleAddToCart}
-                                    disabled={outOfStock}
-                                    className={`w-full py-3.5 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all ${
-                                        outOfStock
-                                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                            : 'bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-200'
-                                    }`}
-                                >
-                                    <ShoppingCartIcon className="h-5 w-5" />
-                                    {outOfStock ? 'Currently Unavailable' : 'Add to Cart'}
-                                </button>
+                            <div className="mt-auto pt-4 relative overflow-hidden min-h-[60px]">
+                                <AnimatePresence mode="wait">
+                                    {isInCart ? (
+                                        <motion.button
+                                            key="view-cart"
+                                            initial={{ y: 20, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            exit={{ y: -20, opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            onClick={handleViewCart}
+                                            className="w-full py-3.5 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
+                                        >
+                                            <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                                            View Cart
+                                        </motion.button>
+                                    ) : (
+                                        <motion.button
+                                            key="add-to-cart"
+                                            initial={{ y: -20, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            exit={{ y: 20, opacity: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            onClick={handleAddToCart}
+                                            disabled={outOfStock}
+                                            className={`w-full py-3.5 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all ${
+                                                outOfStock
+                                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                                    : 'bg-orange-500 text-white hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-200'
+                                            }`}
+                                        >
+                                            <ShoppingCartIcon className="h-5 w-5" />
+                                            {outOfStock ? 'Currently Unavailable' : 'Add to Cart'}
+                                        </motion.button>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
                     </div>

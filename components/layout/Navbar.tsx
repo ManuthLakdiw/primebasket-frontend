@@ -18,6 +18,7 @@ import { headerAnimationVariant } from '@/util/animations';
 import { useAuthStore } from '@/store/authStore';
 import { AnimatePresence, motion } from "motion/react";
 import { getAllPublicCategories } from "@/actions/category";
+import {useCartStore} from "@/store/cartStore";
 
 type Category = {
     id: number;
@@ -40,6 +41,8 @@ export default function Navbar() {
     const [categories, setCategories] = useState<Category[]>([]);
     const [catLoading, setCatLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const totalItems = useCartStore((state) => state.totalItems);
+
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -136,7 +139,16 @@ export default function Navbar() {
                     <div className="flex items-center space-x-5">
                         <Link href="/cart" className="relative text-gray-600 hover:text-orange-500 transition-colors">
                             <ShoppingCartIcon className="h-6 w-6" />
-                            <span className="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">3</span>
+                            {totalItems > 0 && (
+                                <motion.span
+                                    key={totalItems}
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="absolute -top-2 -right-2 inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-orange-500 rounded-full"
+                                >
+                                    {totalItems > 99 ? '99+' : totalItems}
+                                </motion.span>
+                            )}
                         </Link>
 
                         {isLoading ? (

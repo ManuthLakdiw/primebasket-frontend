@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import {getMyDetailsAction, logoutAction} from "@/actions/user";
 import {Address} from "@/components/profile/AddressModal";
+import {useCartStore} from "@/store/cartStore";
 
 export interface User {
     id: string;
@@ -33,6 +34,8 @@ export const useAuthStore = create<AuthState>()(
 
                 if (response.success && response.data) {
                     set({ user: response.data, isLoading: false });
+                    await useCartStore.getState().fetchCart();
+
                 } else {
                     set({ user: null, isLoading: false });
                 }
@@ -41,6 +44,7 @@ export const useAuthStore = create<AuthState>()(
                 set({ isLoading: true });
                 await logoutAction();
                 set({ user: null, isLoading: false });
+                useCartStore.getState().clearFrontendCart();
             }
         }
 
