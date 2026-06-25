@@ -131,7 +131,7 @@ export async function getAllProductsAction(page: number, size: number) {
 
 export async function getProductById(id: number) {
     try {
-        const response = await fetchApi(`/products/${id}`, {
+        const response = await fetchApi(`/products/public/${id}`, {
             method: 'GET',
             cache: 'force-cache',
             next: { tags: ['products-list'] }

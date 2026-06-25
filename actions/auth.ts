@@ -3,6 +3,7 @@
 import {RegisterFormValues} from "@/util/validations";
 import {fetchApi} from "@/util/api";
 import {cookies} from "next/headers";
+import {revalidateTag} from "next/cache";
 
 export async function registerUserAction(data: RegisterFormValues) {
     try {
@@ -16,6 +17,9 @@ export async function registerUserAction(data: RegisterFormValues) {
         const result = await response.json();
 
         if (!result.success) {
+
+            // @ts-ignore
+            revalidateTag('all-users');
             return {
                 success: false,
                 error: result.message || "Registration failed. Please try again."
@@ -129,6 +133,8 @@ export async function googleLoginAction(idToken: string) {
         const result = await response.json();
 
         if (result.success && result.data) {
+            // @ts-ignore
+            revalidateTag('all-users');
             const { accessToken, refreshToken } = result.data;
             const cookieStore = await cookies();
             const isProduction = process.env.NODE_ENV === 'production';
@@ -171,6 +177,8 @@ export async function facebookLoginAction(fbAccessToken: string) {
         const result = await response.json();
 
         if (result.success && result.data) {
+            // @ts-ignore
+            revalidateTag('all-users');
             const { accessToken, refreshToken } = result.data;
             const cookieStore = await cookies();
             const isProduction = process.env.NODE_ENV === 'production';
