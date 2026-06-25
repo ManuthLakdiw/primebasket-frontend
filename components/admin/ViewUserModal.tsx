@@ -139,8 +139,8 @@ export default function ViewUserModal({ userId, onClose }: Props) {
                                     <p className="text-sm text-gray-500 italic">No saved addresses.</p>
                                 ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {user.addresses.map((addr: any) => (
-                                            <div key={addr.id} className="border border-gray-200 rounded-md p-3 bg-gray-50">
+                                        {user.addresses.map((addr: any, index: number) => (
+                                            <div key={index} className="border border-gray-200 rounded-md p-3 bg-gray-50">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <MapPinIcon className="h-4 w-4 text-orange-500" />
                                                     <span className="text-xs font-semibold text-gray-700 uppercase">
