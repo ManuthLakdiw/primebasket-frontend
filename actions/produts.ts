@@ -96,6 +96,7 @@ export async function updateProductAction(id: number, data: ProductFormValues) {
         }
 
         revalidatePath('/admin/dashboard/products');
+        revalidatePath('/admin/dashboard/orders');
 
 
         // @ts-ignore
