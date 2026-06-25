@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import {usePathname, useRouter, useSearchParams} from 'next/navigation';
 import {
     ShoppingCartIcon,
     MagnifyingGlassIcon,
@@ -42,7 +42,7 @@ export default function Navbar() {
     const [catLoading, setCatLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const totalItems = useCartStore((state) => state.totalItems);
-
+    const searchParams = useSearchParams();
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,6 +51,15 @@ export default function Navbar() {
             closeMobileMenu();
         }
     };
+
+    useEffect(() => {
+        const currentQuery = searchParams?.get('q');
+        if (currentQuery) {
+            setSearchQuery(currentQuery);
+        } else {
+            setSearchQuery('');
+        }
+    }, [searchParams]);
 
 
     useEffect(() => {

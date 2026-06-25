@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import {useRouter, useSearchParams} from 'next/navigation';
 import ProductCard from '@/components/product/ProductCard';
 import ProductModal from '@/components/product/ProductModal';
 import Pagination from '@/components/ui/Pagination';
@@ -11,6 +11,7 @@ import { AnimatePresence } from 'motion/react';
 
 function SearchContent() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const urlQuery = searchParams?.get('q') || '';
 
     const [searchQuery, setSearchQuery] = useState(urlQuery);
@@ -82,22 +83,6 @@ function SearchContent() {
                 <div className="w-full h-[1px] bg-gray-200 mt-6"></div>
             </div>
 
-            <div className="relative max-w-md mb-8">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                    type="text"
-                    placeholder="Search anything..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setCurrentPage(1);
-                    }}
-                    className="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
-                />
-            </div>
-
             <div className="relative min-h-[500px]">
                 {loading && (
                     <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl">
@@ -110,6 +95,13 @@ function SearchContent() {
                         <InboxIcon className="w-12 h-12 text-gray-300 mb-3" />
                         <h3 className="text-lg font-bold text-gray-700">No products found</h3>
                         <p className="text-sm text-gray-500 mt-1">Try checking your spelling or using different keywords.</p>
+
+                        <button
+                            onClick={() => router.replace('/')}
+                            className="mt-4 text-orange-600 text-sm font-medium hover:underline"
+                        >
+                            Clear search and back to Discover
+                        </button>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
