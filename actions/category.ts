@@ -41,6 +41,8 @@ export async function updateCategoryAction(id: number, data: { name: string; des
         }
 
         revalidatePath('/', 'layout');
+        revalidatePath('/admin/dashboard/products');
+
 
         return { success: true, data: result.data };
     } catch (error) {
@@ -61,6 +63,7 @@ export async function deleteCategoryAction(id: number) {
         }
 
         revalidatePath('/', 'layout');
+        revalidatePath('/admin/dashboard/products');
 
         return { success: true, data: result.data };
     } catch (error) {
