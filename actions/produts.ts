@@ -43,6 +43,7 @@ export async function createProductAction(data: ProductFormValues) {
         }
 
         revalidatePath('/admin/dashboard/products');
+        revalidatePath('/admin/dashboard/categories');
 
 
         // @ts-ignore
@@ -205,7 +206,7 @@ export async function deleteProductAction(id: number) {
         }
 
         revalidatePath('/admin/dashboard/products');
-
+        revalidatePath('/admin/dashboard/categories');
 
         // @ts-ignore
         revalidateTag('products-public-list');
