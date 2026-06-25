@@ -1,7 +1,9 @@
 'use server';
+
 import { cookies } from 'next/headers';
 import {fetchApi} from "@/util/api";
 import {AddressFormValues} from "@/util/validations";
+import {revalidateTag} from "next/cache";
 
 export async function getMyDetailsAction() {
     try {
@@ -123,6 +125,61 @@ export async function deleteAddressAction(addressType: string) {
         return { success: false, error: "Network error occurred" };
     }
 }
+
+export async function getAllCustomersAction(page: number, size: number) {
+    try {
+        console.log("Fetching users with page: ", page, " and size: ", size, "")
+        const response = await fetchApi(`/users?page=${page}&size=${size}`, {
+            method: 'GET',
+            next: {
+                tags: ['all-users'],
+                revalidate: 3600
+            }
+        });
+
+        const result = await response.json();
+        return { success: response.ok, data: result.data };
+    } catch (error) {
+        return { success: false, error: "Network error" };
+    }
+}
+
+export async function getUserFullDetailsAction(userId: string) {
+    try {
+        const response = await fetchApi(`/users/${userId}`, {
+            method: 'GET',
+        });
+
+        const result = await response.json();
+        return { success: response.ok, data: result.data };
+    } catch (error) {
+        return { success: false, error: "Network error" };
+    }
+}
+
+
+export async function toggleUserActivationAction(userId: string) {
+    try {
+        const response = await fetchApi(`/users/${userId}/toggle-status`, {
+            method: 'PUT',
+        });
+
+        if (response.ok) {
+
+            const result = await response.json();
+            // @ts-ignore
+            revalidateTag('all-users');
+
+            return { success: true, data: result.data };
+        } else {
+            return { success: false, error: "Failed to update status" };
+        }
+    } catch (error) {
+        return { success: false, error: "Network error" };
+    }
+}
+
+
 
 
 export async function logoutAction() {
