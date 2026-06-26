@@ -20,6 +20,9 @@ export async function registerUserAction(data: RegisterFormValues) {
 
             // @ts-ignore
             revalidateTag('all-users');
+
+            // @ts-ignore
+            revalidateTag('email-logs')
             return {
                 success: false,
                 error: result.message || "Registration failed. Please try again."
@@ -63,6 +66,10 @@ export async function resendOtpAction(data: { email: string }) {
            body: JSON.stringify(data),
        });
        const result = await response.json();
+
+       // @ts-ignore
+       revalidateTag('email-logs')
+
        return { success: response.ok, data: result };
    }catch (error) {
        console.error("Backend Connection Error:", error);

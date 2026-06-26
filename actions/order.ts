@@ -31,6 +31,13 @@ export async function createOrderAction(payload: CreateOrderPayload) {
 
         // @ts-ignore
         revalidateTag('user-cart');
+
+        // @ts-ignore
+        revalidateTag('reports-sales');
+
+        // @ts-ignore
+        revalidateTag('reports-status');
+
         revalidatePath('/admin/dashboard/orders');
 
         return {
@@ -67,6 +74,7 @@ export async function getOrdersAction(status?: OrderStatus, page: number = 0, si
         const result = await response.json();
         return { success: response.ok, data: result.data };
     } catch (error) {
+        console.log(error, "error")
         return { success: false, error: "Network error" };
     }
 }
@@ -104,6 +112,16 @@ export async function updateOrderStatusAction(orderId: string, status: OrderStat
 
         if (response.ok) {
             revalidatePath('/admin/dashboard/orders');
+
+            // @ts-ignore
+            revalidateTag('reports-sales');
+
+            // @ts-ignore
+            revalidateTag('reports-status');
+
+            // @ts-ignore
+            revalidateTag('email-logs')
+
             return { success: true, message: "Status updated successfully" };
         } else {
             const errorResult = await response.json().catch(() => null);
