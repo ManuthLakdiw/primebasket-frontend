@@ -1,7 +1,7 @@
 'use server';
 
 import { fetchApi } from "@/util/api";
-import { revalidatePath } from "next/cache";
+import {revalidatePath, revalidateTag} from "next/cache";
 
 export async function createCategoryAction(data: { name: string; description?: string }) {
     try {
@@ -17,7 +17,15 @@ export async function createCategoryAction(data: { name: string; description?: s
             return { success: false, error: result.message || "Failed to create" };
         }
 
-        revalidatePath('/', 'layout');
+
+        // @ts-ignore
+        revalidateTag('categories-list');
+
+        // @ts-ignore
+        revalidateTag('categories-dropdown');
+
+        // @ts-ignore
+        revalidateTag('categories-public');
 
         return { success: true, data: result.data };
     } catch (error) {
@@ -40,7 +48,15 @@ export async function updateCategoryAction(id: number, data: { name: string; des
             return { success: false, error: result.message || "Failed to update" };
         }
 
-        revalidatePath('/', 'layout');
+        // @ts-ignore
+        revalidateTag('categories-list');
+
+        // @ts-ignore
+        revalidateTag('categories-dropdown');
+
+        // @ts-ignore
+        revalidateTag('categories-public');
+
         revalidatePath('/admin/dashboard/products');
 
 
@@ -62,7 +78,15 @@ export async function deleteCategoryAction(id: number) {
             return { success: false, error: result.message || "Failed to delete" };
         }
 
-        revalidatePath('/', 'layout');
+        // @ts-ignore
+        revalidateTag('categories-list');
+
+        // @ts-ignore
+        revalidateTag('categories-dropdown');
+
+        // @ts-ignore
+        revalidateTag('categories-public');
+
         revalidatePath('/admin/dashboard/products');
 
         return { success: true, data: result.data };
@@ -76,6 +100,7 @@ export async function getAllCategoriesAction(page: number, size: number) {
         const response = await fetchApi(`/categories?page=${page}&size=${size}`, {
             method: 'GET',
             cache: 'force-cache',
+            next: { tags: ['categories-list'] }
         });
 
         const result = await response.json();
@@ -95,6 +120,7 @@ export async function getCategoriesForDropdownAction() {
         const response = await fetchApi('/categories/dropdown', {
             method: 'GET',
             cache: 'force-cache',
+            next: { tags: ['categories-dropdown'] }
         });
 
         const result = await response.json();
@@ -114,6 +140,7 @@ export async function getAllPublicCategories() {
         const response = await fetchApi('/categories/public', {
             method: 'GET',
             cache: 'force-cache',
+            next: { tags: ['categories-public'] }
         });
 
         const json = await response.json();

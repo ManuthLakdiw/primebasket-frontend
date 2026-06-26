@@ -9,6 +9,8 @@ export async function getMyDetailsAction() {
     try {
         const response = await fetchApi('/users/me', {
             method: 'GET',
+            cache: 'force-cache',
+            next: { tags: ['my-profile'] }
         });
 
         if (!response.ok) {
@@ -38,6 +40,8 @@ export async function updateMyDetailsAction(firstName: string, lastName: string,
         const result = await response.json();
 
         if (result.success) {
+            // @ts-ignore
+            revalidateTag('my-profile');
             return { success: true, data: result.data };
         } else {
             return { success: false, error: result.message || "Failed to update details" };
@@ -57,6 +61,8 @@ export async function updatePasswordAction(currentPassword: string, newPassword:
         });
 
         if (response.ok) {
+            // @ts-ignore
+            revalidateTag('my-profile');
             return { success: true };
         } else {
             const result = await response.json();
@@ -79,6 +85,8 @@ export async function addAddressAction(address: AddressFormValues) {
         const result = await response.json();
 
         if (result.success) {
+            // @ts-ignore
+            revalidateTag('my-profile');
             return { success: true, message: result.data };
         } else {
             return { success: false, error: result.message || "Failed to add address" };
@@ -99,6 +107,8 @@ export async function updateAddressAction(address: AddressFormValues) {
         const result = await response.json();
 
         if (result.success) {
+            // @ts-ignore
+            revalidateTag('my-profile');
             return { success: true, message: result.data };
         } else {
             return { success: false, error: result.message || "Failed to update address" };
@@ -117,6 +127,8 @@ export async function deleteAddressAction(addressType: string) {
         const result = await response.json();
 
         if (result.success) {
+            // @ts-ignore
+            revalidateTag('my-profile');
             return { success: true, message: result.data };
         } else {
             return { success: false, error: result.message || "Failed to delete address" };
@@ -131,9 +143,9 @@ export async function getAllCustomersAction(page: number, size: number) {
         console.log("Fetching users with page: ", page, " and size: ", size, "")
         const response = await fetchApi(`/users?page=${page}&size=${size}`, {
             method: 'GET',
+            cache: 'force-cache',
             next: {
-                tags: ['all-users'],
-                revalidate: 3600
+                tags: ['all-users', `all-users-${page}-${size}`],
             }
         });
 
@@ -147,7 +159,8 @@ export async function getAllCustomersAction(page: number, size: number) {
 export async function getUserFullDetailsAction(userId: string) {
     try {
         const response = await fetchApi(`/users/${userId}`, {
-            method: 'GET',
+            cache: 'force-cache',
+            next: { tags: [`user-details-${userId}`] }
         });
 
         const result = await response.json();
@@ -170,6 +183,8 @@ export async function toggleUserActivationAction(userId: string) {
             // @ts-ignore
             revalidateTag('all-users');
 
+            // @ts-ignore
+            revalidateTag(`user-details-${userId}`);
             return { success: true, data: result.data };
         } else {
             return { success: false, error: "Failed to update status" };

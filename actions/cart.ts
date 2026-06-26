@@ -7,7 +7,7 @@ export async function getCartAction() {
     try {
         const response = await fetchApi('/cart', {
             method: 'GET',
-            cache: 'no-store',
+            cache: 'force-cache',
             next: { tags: ['user-cart'] }
         });
 
