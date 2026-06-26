@@ -9,9 +9,9 @@ import {
     ArrowRightIcon,
     ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
-import {useEffect} from "react";
+import {Suspense, useEffect} from "react";
 
-export default function OrderConfirmationContent() {
+function OrderConfirmationContent() {
     const searchParams = useSearchParams();
     const orderNumber = searchParams.get('orderNumber') || 'Your Order';
 
@@ -72,5 +72,17 @@ export default function OrderConfirmationContent() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function OrderConfirmationPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-[70vh] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
+            </div>
+        }>
+            <OrderConfirmationContent />
+        </Suspense>
     );
 }

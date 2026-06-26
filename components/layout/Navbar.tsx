@@ -67,6 +67,7 @@ export default function Navbar() {
     }, [loadUser]);
 
     useEffect(() => {
+        const controller = new AbortController();
         const fetchCategories = async () => {
             setCatLoading(true);
             try {
@@ -84,6 +85,7 @@ export default function Navbar() {
         };
 
         fetchCategories();
+        return () => controller.abort();
     }, []);
 
     useEffect(() => {

@@ -1,11 +1,13 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import React from "react";
+import React, {Suspense} from "react";
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
     return (
         <>
-            <Navbar />
+            <Suspense fallback={<div>Loading...</div>}>
+                <Navbar />
+            </Suspense>
                 {children}
             <Footer />
         </>

@@ -53,6 +53,7 @@ export default function Sidebar({ isOpen, onClose }: Props) {
                     const isActive = pathname === item.href;
                     return (
                         <Link
+                            prefetch={false}
                             key={item.name}
                             href={item.href}
                             onClick={onClose}

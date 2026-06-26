@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import {Suspense, useEffect, useState} from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -15,7 +15,7 @@ import { useAuthStore } from '@/store/authStore';
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from 'next/navigation';
 
-export default function CartPage() {
+function CartPage() {
     const { items, removeFromCart, updateQuantity, totalPrice, totalItems, isLoading, fetchCart } = useCartStore();
     const { user, isLoading: isAuthLoading } = useAuthStore();
     const router = useRouter();
@@ -277,5 +277,17 @@ export default function CartPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function CartWrapper() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
+            </div>
+        }>
+            <CartPage />
+        </Suspense>
     );
 }

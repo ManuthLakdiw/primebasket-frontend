@@ -42,10 +42,12 @@ export async function fetchApi(
         const refreshToken = cookieStore.get('refreshToken')?.value;
 
         if (!refreshToken) {
-            console.log("No Refresh Token found. Clearing cookies...");
-            cookieStore.delete('accessToken');
-            cookieStore.delete('refreshToken');
-            return response;
+            if (!refreshToken) {
+                console.log("No Refresh Token found. Clearing cookies...");
+                if (cookieStore.has('accessToken')) cookieStore.delete('accessToken');
+                if (cookieStore.has('refreshToken')) cookieStore.delete('refreshToken');
+                return response;
+            }
         }
 
         const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {
@@ -89,9 +91,8 @@ export async function fetchApi(
 
         } else {
             console.log("Refresh Token Expired or Invalid. Clearing cookies...");
-            const cookieStore = await cookies();
-            cookieStore.delete('accessToken');
-            cookieStore.delete('refreshToken');
+            if (cookieStore.has('accessToken')) cookieStore.delete('accessToken');
+            if (cookieStore.has('refreshToken')) cookieStore.delete('refreshToken');
             return response;
         }
     }
