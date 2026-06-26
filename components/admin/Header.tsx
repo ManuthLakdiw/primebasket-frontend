@@ -42,10 +42,10 @@ export default function Header({ onMenuClick }: Props) {
                 <p className="hidden md:block text-sm text-gray-600">{today}</p>
 
                 <div className="flex items-center gap-4">
-                    <button className="flex items-center text-sm text-gray-500 hover:text-orange-500 transition-colors">
+                    <Link href={'/profile'} className="flex items-center text-sm text-gray-500 hover:text-orange-500 transition-colors">
                         <UserCircleIcon className="h-8 w-8" />
                         <span className="ml-2 hidden sm:inline">Admin</span>
-                    </button>
+                    </Link>
                 </div>
             </div>
         </header>
