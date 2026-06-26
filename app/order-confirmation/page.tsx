@@ -1,6 +1,6 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import {useRouter, useSearchParams} from 'next/navigation';
 import Link from 'next/link';
 import {
     CheckCircleIcon,
@@ -9,6 +9,7 @@ import {
     ArrowRightIcon,
     ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
+import {useEffect} from "react";
 
 export default function OrderConfirmationContent() {
     const searchParams = useSearchParams();
@@ -37,7 +38,7 @@ export default function OrderConfirmationContent() {
 
                 <div className="space-y-3">
                     <Link
-                        href="/public"
+                        href="/"
                         className="flex items-center justify-center w-full py-3 px-4 bg-orange-500 text-white font-medium rounded-xl hover:bg-orange-600 transition-colors shadow-sm"
                     >
                         <ShoppingBagIcon className="w-5 h-5 mr-2" />

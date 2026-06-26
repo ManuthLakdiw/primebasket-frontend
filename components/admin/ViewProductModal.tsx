@@ -34,7 +34,6 @@ export const ViewProductModal = ({ productId, onClose }: { productId: number; on
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-gray-900 bg-opacity-60" onClick={onClose} />
             <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-                {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <h3 className="text-xl font-bold text-gray-800">Product Details</h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-red-500">
@@ -42,7 +41,6 @@ export const ViewProductModal = ({ productId, onClose }: { productId: number; on
                     </button>
                 </div>
 
-                {/* Content */}
                 <div className="p-6 overflow-y-auto">
                     {loading ? (
                         <div className="flex justify-center py-10">
@@ -51,12 +49,10 @@ export const ViewProductModal = ({ productId, onClose }: { productId: number; on
                     ) : product ? (
                         <div className="space-y-6">
                             <div className="flex flex-col md:flex-row gap-6">
-                                {/* Slider Section */}
                                 <div className="relative w-full md:w-1/2 flex-shrink-0 aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
                                     <ImageSlider images={product.images} />
                                 </div>
 
-                                {/* Details Section */}
                                 <div className="w-full md:w-1/2 space-y-4">
                                     <div>
                                         <div className="text-sm text-orange-500 font-semibold mb-1">{product.category.name}</div>
@@ -64,7 +60,6 @@ export const ViewProductModal = ({ productId, onClose }: { productId: number; on
                                         <p className="text-sm text-gray-500 mt-1">SKU: {product.sku}</p>
                                     </div>
 
-                                    {/* Pricing */}
                                     <div className="flex items-end gap-3">
                                         <span className="text-3xl font-bold text-gray-900">Rs. {product.sellingPrice.toFixed(2)}</span>
                                         {product.isOnSale && (
@@ -72,10 +67,8 @@ export const ViewProductModal = ({ productId, onClose }: { productId: number; on
                                         )}
                                     </div>
 
-                                    {/* Stock Status Badge */}
                                     <div>
                                         {(() => {
-                                            // 2. අදාළ Status එකට ගැළපෙන Config එක ගන්නවා
                                             const stockBadge = stockConfig[product.stockStatus] || { label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
                                             return (
                                                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${stockBadge.color}`}>
@@ -85,11 +78,10 @@ export const ViewProductModal = ({ productId, onClose }: { productId: number; on
                                         })()}
                                     </div>
 
-                                    <p className="text-gray-600 text-sm leading-relaxed">{product.description}</p>
+                                    <p className="text-gray-600 text-sm leading-relaxed wrap-break-word">{product.description}</p>
                                 </div>
                             </div>
 
-                            {/* Attributes Table */}
                             {Object.keys(product.attributes || {}).length > 0 && (
                                 <div className="mt-6">
                                     <h4 className="font-semibold text-gray-900 mb-3 border-b pb-2">Specifications</h4>

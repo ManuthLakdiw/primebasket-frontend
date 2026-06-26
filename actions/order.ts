@@ -1,7 +1,8 @@
 'use server';
 
 import { fetchApi } from "@/util/api";
-import { revalidateTag } from "next/cache";
+import {revalidatePath, revalidateTag} from "next/cache";
+import {OrderStatus} from "@/app/admin/dashboard/orders/page";
 
 interface CreateOrderPayload {
     cartItemIds: number[];
@@ -30,6 +31,7 @@ export async function createOrderAction(payload: CreateOrderPayload) {
 
         // @ts-ignore
         revalidateTag('user-cart');
+        revalidatePath('/admin/dashboard/orders');
 
         return {
             success: true,
@@ -39,5 +41,75 @@ export async function createOrderAction(payload: CreateOrderPayload) {
     } catch (error) {
         console.error("Create Order Error:", error);
         return { success: false, error: "Network error occurred while placing order" };
+    }
+}
+
+
+export async function getOrdersAction(status?: OrderStatus, page: number = 0, size: number = 10) {
+    try {
+        const queryParams = new URLSearchParams({
+            page: page.toString(),
+            size: size.toString()
+        });
+
+        if (status) queryParams.append('status', status);
+
+        const tag = status ? `adminOrders-${status}` : 'adminOrders-all';
+
+        const response = await fetchApi(`/orders?${queryParams.toString()}`, {
+            method: 'GET',
+            cache: 'force-cache',
+            next: {
+                tags: [tag],
+            }
+        });
+
+        const result = await response.json();
+        return { success: response.ok, data: result.data };
+    } catch (error) {
+        return { success: false, error: "Network error" };
+    }
+}
+
+export async function getOrderDetailsAction(orderId: string) {
+    try {
+        const response = await fetchApi(`/orders/${orderId}`, {
+            method: 'GET',
+            cache: 'force-cache',
+            next: {
+                tags: [`orderDetails-${orderId}`]
+            }
+        });
+
+        const result = await response.json();
+        return { success: response.ok, data: result.data };
+    } catch (error) {
+        return { success: false, error: "Network error" };
+    }
+}
+
+export async function updateOrderStatusAction(orderId: string, status: OrderStatus, reason?: string) {
+    try {
+        const queryParams = new URLSearchParams({
+            newStatus: status
+        });
+
+        if (reason) {
+            queryParams.append('reason', reason);
+        }
+
+        const response = await fetchApi(`/orders/${orderId}/status?${queryParams.toString()}`, {
+            method: 'PATCH',
+        });
+
+        if (response.ok) {
+            revalidatePath('/admin/dashboard/orders');
+            return { success: true, message: "Status updated successfully" };
+        } else {
+            const errorResult = await response.json().catch(() => null);
+            return { success: false, error: errorResult?.message || "Failed to update status" };
+        }
+    } catch (error) {
+        return { success: false, error: "Network error occurred" };
     }
 }
