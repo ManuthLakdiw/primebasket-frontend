@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import {usePathname, useRouter, useSearchParams} from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
     ShoppingCartIcon,
     MagnifyingGlassIcon,
@@ -18,7 +18,7 @@ import { headerAnimationVariant } from '@/util/animations';
 import { useAuthStore } from '@/store/authStore';
 import { AnimatePresence, motion } from "motion/react";
 import { getAllPublicCategories } from "@/actions/category";
-import {useCartStore} from "@/store/cartStore";
+import { useCartStore } from "@/store/cartStore";
 
 type Category = {
     id: number;
@@ -29,20 +29,24 @@ type Category = {
 
 const createSlug = (name: string) => name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and');
 
-
-
 export default function Navbar() {
-    const { user, isLoading, logout, loadUser } = useAuthStore();
+    const { user, isLoading: isAuthLoading, logout, loadUser } = useAuthStore();
     const pathname = usePathname();
     const router = useRouter();
+
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
     const profileMenuRef = useRef<HTMLDivElement>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [catLoading, setCatLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const totalItems = useCartStore((state) => state.totalItems);
     const searchParams = useSearchParams();
+
+    const totalItems = useCartStore((state) => state.totalItems);
+    const isCartLoading = useCartStore((state) => state.isLoading);
+    const fetchCart = useCartStore((state) => state.fetchCart);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,10 +65,15 @@ export default function Navbar() {
         }
     }, [searchParams]);
 
-
     useEffect(() => {
         loadUser();
     }, [loadUser]);
+
+    useEffect(() => {
+        if (user) {
+            fetchCart();
+        }
+    }, [user, fetchCart]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -102,6 +111,15 @@ export default function Navbar() {
     const closeMobileMenu = () => setMobileMenuOpen(false);
 
     const getInitial = () => (user ? user.firstName[0].toUpperCase() : '?');
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        await logout();
+        setProfileMenuOpen(false);
+        closeMobileMenu();
+        router.replace('/');
+        setIsLoggingOut(false);
+    };
 
     return (
         <motion.header
@@ -150,7 +168,15 @@ export default function Navbar() {
                     <div className="flex items-center space-x-5">
                         <Link href="/cart" className="relative text-gray-600 hover:text-orange-500 transition-colors">
                             <ShoppingCartIcon className="h-6 w-6" />
-                            {totalItems > 0 && (
+
+                            {isCartLoading ? (
+                                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 border border-orange-200">
+                                    <svg className="animate-spin h-3 w-3 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            ) : totalItems > 0 ? (
                                 <motion.span
                                     key={totalItems}
                                     initial={{ scale: 0 }}
@@ -159,10 +185,10 @@ export default function Navbar() {
                                 >
                                     {totalItems > 99 ? '99+' : totalItems}
                                 </motion.span>
-                            )}
+                            ) : null}
                         </Link>
 
-                        {isLoading ? (
+                        {isAuthLoading ? (
                             <div className="w-10 h-10 bg-gray-200 animate-pulse rounded-full hidden lg:block" />
                         ) : user ? (
                             <div className="relative hidden lg:block" ref={profileMenuRef}>
@@ -191,7 +217,26 @@ export default function Navbar() {
                                             {user.role === 'ADMIN' && (
                                                 <Link href="/admin/dashboard" className="flex items-center gap-3 px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 transition" onClick={() => setProfileMenuOpen(false)}><LifebuoyIcon className="w-5 h-5" /> Dashboard</Link>
                                             )}
-                                            <button onClick={async () => { await logout(); setProfileMenuOpen(false); router.replace('/'); }} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition text-left mt-1 pt-2 border-t border-gray-100"><ArrowLeftOnRectangleIcon className="w-5 h-5" /> Logout</button>
+
+                                            <button
+                                                onClick={handleLogout}
+                                                disabled={isLoggingOut}
+                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition text-left mt-1 pt-2 border-t border-gray-100 disabled:opacity-50"
+                                            >
+                                                {isLoggingOut ? (
+                                                    <>
+                                                        <svg className="animate-spin h-5 w-5 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        Logging out...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <ArrowLeftOnRectangleIcon className="w-5 h-5" /> Logout
+                                                    </>
+                                                )}
+                                            </button>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -213,7 +258,6 @@ export default function Navbar() {
                                 <Link href="/" className={`text-[11px] font-bold uppercase tracking-wide transition-colors ${pathname === '/' ? 'text-orange-600' : 'text-gray-500 hover:text-orange-600'}`}>Discover</Link>
                                 {categories.map((cat) => {
                                     const slug = createSlug(cat.name);
-
                                     const isActive = pathname.includes(slug);
                                     return (
                                         <Link key={cat.id} href={`/category/${createSlug(cat.name)}`} className={`text-[11px] font-bold uppercase tracking-wide transition-colors hover:text-orange-600 whitespace-nowrap ${isActive ? 'text-orange-600' : 'text-gray-500'}`}>{cat.name}</Link>
@@ -250,7 +294,7 @@ export default function Navbar() {
                                 </form>
                             </div>
 
-                            {isLoading ? (
+                            {isAuthLoading ? (
                                 <div className="w-full h-12 bg-gray-200 animate-pulse rounded-md mb-4" />
                             ) : user ? (
                                 <div className="p-3 bg-gray-50 rounded-lg mb-4 border border-gray-100">
@@ -259,7 +303,15 @@ export default function Navbar() {
                                     <div className="mt-2 flex gap-2">
                                         <Link href="/profile" className="text-xs text-blue-600 font-medium" onClick={closeMobileMenu}>Profile</Link>
                                         {user.role === 'ADMIN' && <Link href="/admin/dashboard" className="text-xs text-blue-600 font-medium" onClick={closeMobileMenu}>Dashboard</Link>}
-                                        <button onClick={async () => { await logout(); closeMobileMenu(); router.replace('/'); }} className="text-xs text-red-600 font-medium">Logout</button>
+
+                                        {/* Mobile Logout Button */}
+                                        <button
+                                            onClick={handleLogout}
+                                            disabled={isLoggingOut}
+                                            className="text-xs text-red-600 font-medium disabled:opacity-50"
+                                        >
+                                            {isLoggingOut ? 'Logging out...' : 'Logout'}
+                                        </button>
                                     </div>
                                 </div>
                             ) : (
