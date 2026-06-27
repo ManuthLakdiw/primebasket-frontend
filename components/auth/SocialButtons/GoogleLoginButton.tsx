@@ -8,7 +8,7 @@ interface GoogleButtonProps {
 
 export const GoogleLoginButton = ({ onSuccess, onError }: GoogleButtonProps) => {
     return (
-        <div className="w-full flex justify-center">
+        <div className="w-full flex justify-center overflow-hidden">
             <GoogleLogin
                 theme="filled_blue"
                 shape="rectangular"
@@ -16,7 +16,6 @@ export const GoogleLoginButton = ({ onSuccess, onError }: GoogleButtonProps) => 
                 text="continue_with"
                 onSuccess={onSuccess}
                 onError={onError}
-                width="340"
             />
         </div>
     );
