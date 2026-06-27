@@ -15,6 +15,7 @@ export const GoogleLoginButton = ({ onSuccess, onError }: GoogleButtonProps) => 
             text="continue_with"
             onSuccess={onSuccess}
             onError={onError}
+            width="340"
         />
     );
 };
