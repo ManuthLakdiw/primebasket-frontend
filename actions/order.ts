@@ -180,3 +180,17 @@ export async function cancelMyOrderAction(orderId: string) {
         return { success: false, error: "Network error occurred" };
     }
 }
+
+export async function getOrderDetailsByNumberAction(orderNumber: string) {
+    try {
+        const response = await fetchApi(`/orders/number/${orderNumber}`, {
+            method: 'GET',
+            cache: 'no-store',
+        });
+
+        const result = await response.json();
+        return { success: response.ok, data: result.data };
+    } catch (error) {
+        return { success: false, error: "Network error" };
+    }
+}
