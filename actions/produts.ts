@@ -45,9 +45,11 @@ export async function createProductAction(data: ProductFormValues) {
         revalidatePath('/admin/dashboard/products');
         revalidatePath('/admin/dashboard/categories');
 
-
         // @ts-ignore
         revalidateTag('products-public-list');
+
+        // @ts-ignore
+        revalidateTag('dashboard-summary')
 
         return { success: true, data: result.data || result };
 
@@ -97,7 +99,6 @@ export async function updateProductAction(id: number, data: ProductFormValues) {
 
         revalidatePath('/admin/dashboard/products');
         revalidatePath('/admin/dashboard/orders');
-
 
         // @ts-ignore
         revalidateTag('products-public-list');
@@ -211,6 +212,9 @@ export async function deleteProductAction(id: number) {
 
         // @ts-ignore
         revalidateTag('products-public-list');
+
+        // @ts-ignore
+        revalidateTag('dashboard-summary')
         return { success: true, data: result.data };
     } catch (error) {
         return { success: false, error: "Network error" };

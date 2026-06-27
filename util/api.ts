@@ -29,25 +29,23 @@ export async function fetchApi(
         ...(options.headers as Record<string, string>),
     };
 
-    console.log("FETCHING URL TO BACKEND:", url);
 
     let response = await fetch(url, {
         ...options,
         headers: finalHeaders,
     });
 
+    console.log("FETCHING URL TO BACKEND:", url);
 
     if (response.status === 401) {
         console.log("Access Token Expired. Attempting to refresh...");
         const refreshToken = cookieStore.get('refreshToken')?.value;
 
         if (!refreshToken) {
-            if (!refreshToken) {
                 console.log("No Refresh Token found. Clearing cookies...");
                 if (cookieStore.has('accessToken')) cookieStore.delete('accessToken');
                 if (cookieStore.has('refreshToken')) cookieStore.delete('refreshToken');
                 return response;
-            }
         }
 
         const refreshRes = await fetch(`${BASE_URL}/auth/refresh`, {

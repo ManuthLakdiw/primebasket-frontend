@@ -86,10 +86,8 @@ export async function getOrderDetailsAction(orderId: string) {
     try {
         const response = await fetchApi(`/orders/${orderId}`, {
             method: 'GET',
-            cache: 'force-cache',
-            next: {
-                tags: [`orderDetails-${orderId}`]
-            }
+            cache: 'no-store',
+
         });
 
         const result = await response.json();

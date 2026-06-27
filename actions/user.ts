@@ -9,8 +9,7 @@ export async function getMyDetailsAction() {
     try {
         const response = await fetchApi('/users/me', {
             method: 'GET',
-            cache: 'force-cache',
-            next: { tags: ['my-profile'] }
+            cache: 'no-store',
         });
 
         if (!response.ok) {
@@ -42,6 +41,7 @@ export async function updateMyDetailsAction(firstName: string, lastName: string,
         if (result.success) {
             // @ts-ignore
             revalidateTag('my-profile');
+
             return { success: true, data: result.data };
         } else {
             return { success: false, error: result.message || "Failed to update details" };
@@ -185,6 +185,9 @@ export async function toggleUserActivationAction(userId: string) {
 
             // @ts-ignore
             revalidateTag(`user-details-${userId}`);
+
+            // @ts-ignore
+            revalidateTag('dashboard-summary')
             return { success: true, data: result.data };
         } else {
             return { success: false, error: "Failed to update status" };
