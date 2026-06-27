@@ -38,6 +38,9 @@ export async function createOrderAction(payload: CreateOrderPayload) {
         // @ts-ignore
         revalidateTag('reports-status');
 
+        // @ts-ignore
+        revalidateTag('dashboard-summary')
+
         revalidatePath('/admin/dashboard/orders');
 
         return {
@@ -122,10 +125,58 @@ export async function updateOrderStatusAction(orderId: string, status: OrderStat
             // @ts-ignore
             revalidateTag('email-logs')
 
+            // @ts-ignore
+            revalidateTag('dashboard-summary')
+
             return { success: true, message: "Status updated successfully" };
         } else {
             const errorResult = await response.json().catch(() => null);
             return { success: false, error: errorResult?.message || "Failed to update status" };
+        }
+    } catch (error) {
+        return { success: false, error: "Network error occurred" };
+    }
+}
+
+export async function getMyOrdersAction(page: number = 0, size: number = 10) {
+    try {
+        const response = await fetchApi(`/orders/my-orders?page=${page}&size=${size}`, {
+            method: 'GET',
+            cache: 'no-store',
+        });
+
+        const result = await response.json();
+        return { success: response.ok, data: result.data };
+    } catch (error) {
+        return { success: false, error: "Network error" };
+    }
+}
+
+
+export async function cancelMyOrderAction(orderId: string) {
+    try {
+        const response = await fetchApi(`/orders/${orderId}/cancel`, {
+            method: 'PATCH',
+        });
+
+        if (response.ok) {
+            // @ts-ignore
+            revalidateTag('user-orders');
+            // @ts-ignore
+            revalidateTag('dashboard-summary');
+            // @ts-ignore
+            revalidateTag('reports-status');
+            // @ts-ignore
+            revalidateTag('adminOrders-all');
+
+            revalidatePath('/admin/dashboard/orders');
+
+            revalidatePath('/admin/dashboard/products');
+
+            return { success: true, message: "Order cancelled successfully" };
+        } else {
+            const errorResult = await response.json().catch(() => null);
+            return { success: false, error: errorResult?.message || "Failed to cancel order" };
         }
     } catch (error) {
         return { success: false, error: "Network error occurred" };
